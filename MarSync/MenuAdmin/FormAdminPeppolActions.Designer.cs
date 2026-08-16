@@ -92,6 +92,9 @@
             this.ButtonEntityNew = new System.Windows.Forms.Button();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.DetectorTest1 = new System.Windows.Forms.Button();
+            this.DetectorTest2 = new System.Windows.Forms.Button();
+            this.DetectorTest3 = new System.Windows.Forms.Button();
             this.TabControlVariousActions.SuspendLayout();
             this.TabActions.SuspendLayout();
             this.TabNotifications.SuspendLayout();
@@ -130,6 +133,9 @@
             // 
             // TabActions
             // 
+            this.TabActions.Controls.Add(this.DetectorTest3);
+            this.TabActions.Controls.Add(this.DetectorTest2);
+            this.TabActions.Controls.Add(this.DetectorTest1);
             this.TabActions.Controls.Add(this.ButtonMailAllStatusReports);
             this.TabActions.Controls.Add(this.ButtonShowAllNotificationsAsReceiver);
             this.TabActions.Controls.Add(this.ButtonShowAllNotificationsAsSender);
@@ -158,7 +164,7 @@
             // 
             // ButtonMailAllStatusReports
             // 
-            this.ButtonMailAllStatusReports.Location = new System.Drawing.Point(485, 140);
+            this.ButtonMailAllStatusReports.Location = new System.Drawing.Point(485, 126);
             this.ButtonMailAllStatusReports.Name = "ButtonMailAllStatusReports";
             this.ButtonMailAllStatusReports.Size = new System.Drawing.Size(129, 39);
             this.ButtonMailAllStatusReports.TabIndex = 23;
@@ -738,6 +744,36 @@
             this.ToolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
             this.ToolStripStatusLabel.Text = "Ready";
             // 
+            // DetectorTest1
+            // 
+            this.DetectorTest1.Location = new System.Drawing.Point(485, 181);
+            this.DetectorTest1.Name = "DetectorTest1";
+            this.DetectorTest1.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest1.TabIndex = 24;
+            this.DetectorTest1.Text = "Analyze Snapshot";
+            this.DetectorTest1.UseVisualStyleBackColor = true;
+            this.DetectorTest1.Click += new System.EventHandler(this.DetectorTest1_Click);
+            // 
+            // DetectorTest2
+            // 
+            this.DetectorTest2.Location = new System.Drawing.Point(485, 215);
+            this.DetectorTest2.Name = "DetectorTest2";
+            this.DetectorTest2.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest2.TabIndex = 25;
+            this.DetectorTest2.Text = "Compare Snapshots";
+            this.DetectorTest2.UseVisualStyleBackColor = true;
+            this.DetectorTest2.Click += new System.EventHandler(this.DetectorTest2_Click);
+            // 
+            // DetectorTest3
+            // 
+            this.DetectorTest3.Location = new System.Drawing.Point(485, 251);
+            this.DetectorTest3.Name = "DetectorTest3";
+            this.DetectorTest3.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest3.TabIndex = 26;
+            this.DetectorTest3.Text = "Report Compare";
+            this.DetectorTest3.UseVisualStyleBackColor = true;
+            this.DetectorTest3.Click += new System.EventHandler(this.DetectorTest3_Click);
+            // 
             // FormAdminPeppolActions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -835,5 +871,8 @@
         private System.Windows.Forms.RichTextBox RichTextBoxAllNotifications;
         private System.Windows.Forms.Button ButtonTestFilter;
         private System.Windows.Forms.Button ButtonMailAllStatusReports;
+        private System.Windows.Forms.Button DetectorTest1;
+        private System.Windows.Forms.Button DetectorTest2;
+        private System.Windows.Forms.Button DetectorTest3;
     }
 }

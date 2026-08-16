@@ -60,11 +60,11 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v3.0.1.0 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v3.0.2.0 [" + SharedGlobals.ActiveCompany + "]";
             }
             else
             {
-                Text = "MarSync v3.0.1.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v3.0.2.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
             }
             LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
 
@@ -124,7 +124,7 @@ namespace MarSync.MarioMenu.Actions
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);                
             }
-            else if (valOfVersion < 115023)
+            else if (valOfVersion < 115024)
             {
                 MessageBox.Show(
                     "Installeer recentere versie van MarIntegraal a.u.b.",
@@ -176,7 +176,8 @@ namespace MarSync.MarioMenu.Actions
             ComboBoxResponseCode.DisplayMember = "Value";
             ComboBoxResponseCode.ValueMember = "Key";
             ComboBoxResponseCode.SelectedIndex = 0;
-            ComboBoxBuyerOrSeller.SelectedIndex = 0; // Default to Buyer
+            ComboBoxBuyerOrSeller.SelectedIndex = 1; // Default to Seller, Buyer is checked at invoicing
+            ComboBoxBuyerOrSeller.Enabled = false; // Disable selection for now, as at moment only Seller is supported for updating supported documents
 
             // Code Description
             // REC  Receiver unknown
@@ -2893,7 +2894,8 @@ namespace MarSync.MarioMenu.Actions
                             string resultJson = await CheckPeppolSupportedDocuments(customerKbo);
                             if (!string.IsNullOrEmpty(resultJson))
                             {
-                                string readable = BuildSupportedDocumentsReadableString(resultJson);
+                                // string readable = BuildSupportedDocumentsReadableString(resultJson);
+                                string readable = resultJson;
 
                                 partiesRs.Fields["V407"].Value = readable;
                                 partiesRs.Fields["dnnSync"].Value = "False";    // Mark as to be synced
@@ -2918,7 +2920,8 @@ namespace MarSync.MarioMenu.Actions
                             string resultJson = await CheckPeppolSupportedDocuments(supplierKbo);
                             if (!string.IsNullOrEmpty(resultJson))
                             {
-                                string readable = BuildSupportedDocumentsReadableString(resultJson);
+                                // string readable = BuildSupportedDocumentsReadableString(resultJson);
+                                string readable = resultJson;
 
                                 partiesRs.Fields["V410"].Value = readable;
                                 partiesRs.Fields["dnnSync"].Value = "False";    // Mark as to be synced

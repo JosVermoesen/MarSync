@@ -1,4 +1,6 @@
 ﻿using ADODB;
+using MarSync.Camt053;
+using MarSync.Classes;
 using MarSync.Classes.Ademico;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,10 +15,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Serialization;
 using Vsoft.Mail;
 using static MarSync.AdemicoModels;
-using System.Xml.Serialization;
-using MarSync.Camt053;
 
 namespace MarSync.MarioMenu.Admin
 {
@@ -1671,6 +1672,78 @@ namespace MarSync.MarioMenu.Admin
             }
             ToolStripStatusLabel.Text = "Klaar";
             Cursor.Current = Cursors.Default;
+        }
+
+        private void DetectorTest1_Click(object sender, EventArgs e)
+        {
+            string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string inputFile = Path.Combine(myDocumentsFolderPath, "clientsettings2.json");
+
+            string json = File.ReadAllText(inputFile);
+
+            PeppolClientSettingsSnapshot snapshot =
+                PeppolClientSettingsDetector.AnalyzeSnapshot(json);
+
+            Console.WriteLine("Created At: " + snapshot.CreatedAt);
+            Console.WriteLine("Supports Invoice: " + snapshot.SupportsInvoice);
+            Console.WriteLine("Supports CreditNote: " + snapshot.SupportsCreditNote);
+            Console.WriteLine("UBL.BE Conformant: " + snapshot.SupportsUblBeConformant);
+
+            foreach (var participant in snapshot.Participants)
+            {
+                Console.WriteLine("Participant: " + participant.ParticipantId);
+                Console.WriteLine("Invoice: " + participant.SupportsInvoice);
+                Console.WriteLine("CreditNote: " + participant.SupportsCreditNote);
+
+                foreach (var docType in participant.DocTypeValues)
+                {
+                    Console.WriteLine("  - " + docType);
+                }
+            }
+        }
+
+        private void DetectorTest2_Click(object sender, EventArgs e)
+        {
+            string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string baselineJsonPath = Path.Combine(myDocumentsFolderPath, "clientsettings1.json");
+            string currentJsonPath = Path.Combine(myDocumentsFolderPath, "clientsettings2.json");
+
+            string baselineJson = File.ReadAllText(baselineJsonPath);
+            string currentJson = File.ReadAllText(currentJsonPath);
+
+            PeppolClientSettingsDelta delta =
+                PeppolClientSettingsDetector.CompareSnapshots(baselineJson, currentJson);
+
+            Console.WriteLine("Invoice support dropped: " + delta.InvoiceSupportDropped);
+            Console.WriteLine("CreditNote support dropped: " + delta.CreditNoteSupportDropped);
+            Console.WriteLine("UBL.BE conformant dropped: " + delta.UblBeConformantDropped);
+
+            Console.WriteLine("Removed docTypes:");
+            foreach (var docType in delta.RemovedDocTypes)
+            {
+                Console.WriteLine("- " + docType);
+            }
+
+            Console.WriteLine("Added docTypes:");
+            foreach (var docType in delta.AddedDocTypes)
+            {
+                Console.WriteLine("- " + docType);
+            }
+        }
+
+        private void DetectorTest3_Click(object sender, EventArgs e)
+        {
+            string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string baselineJsonPath = Path.Combine(myDocumentsFolderPath, "clientsettings1.json");
+            string currentJsonPath = Path.Combine(myDocumentsFolderPath, "clientsettings2.json");
+
+            string baselineJson = File.ReadAllText(baselineJsonPath);
+            string currentJson = File.ReadAllText(currentJsonPath);
+
+            var delta = PeppolClientSettingsDetector.CompareSnapshots(baselineJson, currentJson);
+            string report = PeppolClientSettingsDetector.BuildHumanReport(delta);
+
+            Console.WriteLine(report);
         }
     }
 }
