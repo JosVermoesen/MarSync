@@ -2,6 +2,7 @@
 using MarSync.Classes.Ademico;
 using MarSync.MarioMenu.Actions;
 using MarSync.MarioMenu.Admin;
+using MarSync.SharedForms;
 using Microsoft.VisualBasic;
 using System;
 using System.Diagnostics;
@@ -9,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
+using MarSync.MenuPeppolClient;
 
 namespace MarSync
 {
@@ -502,6 +504,31 @@ namespace MarSync
                 ExportDocument("Auto Break.pdf", AutoPageBreak);
                 MenuItemAutoPageBreak.Enabled = true;
             }
+        }
+
+        private void CheckDocumentToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (SharedGlobals.CompanyKBONumber == "")
+            {
+                MessageBox.Show("Eerst een bedrijf activeren a.u.b.", "Kies eerst een bedrijf", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (SharedGlobals.ApiModus == "TESTMODE")
+            {
+
+                if (SharedGlobals.UserTestGuid != MyApiSecrets.guidTestAccess)
+                {
+                    MessageBox.Show("Eerst minstens uw TEST sleutel activeren", "Toegangsleutel ontbreekt of onjuist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
+            // Hide();
+            var form = new FormCheckDocument();
+            form.ShowDialog();
+            
+            // Show();
         }
     }
 }

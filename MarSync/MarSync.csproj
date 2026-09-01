@@ -31,7 +31,7 @@
     <PublisherName>Vsoft Administratieve Software</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationRevision>2</ApplicationRevision>
     <ApplicationVersion>3.0.2.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
@@ -196,6 +196,12 @@
     <Compile Include="MenuPeppolClient\FormPeppolArchiveExplorer.Designer.cs">
       <DependentUpon>FormPeppolArchiveExplorer.cs</DependentUpon>
     </Compile>
+    <Compile Include="SharedForms\FormCheckDocument.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SharedForms\FormCheckDocument.Designer.cs">
+      <DependentUpon>FormCheckDocument.cs</DependentUpon>
+    </Compile>
     <Compile Include="SharedForms\FormPeppolViewer.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -277,6 +283,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MenuPeppolClient\FormPeppolArchiveExplorer.resx">
       <DependentUpon>FormPeppolArchiveExplorer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SharedForms\FormCheckDocument.resx">
+      <DependentUpon>FormCheckDocument.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SharedForms\FormPeppolViewer.resx">
       <DependentUpon>FormPeppolViewer.cs</DependentUpon>

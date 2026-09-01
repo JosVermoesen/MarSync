@@ -60,11 +60,11 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v3.0.2.0 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v3.0.2.2 [" + SharedGlobals.ActiveCompany + "]";
             }
             else
             {
-                Text = "MarSync v3.0.2.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v3.0.2.2 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
             }
             LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
 
@@ -177,7 +177,7 @@ namespace MarSync.MarioMenu.Actions
             ComboBoxResponseCode.ValueMember = "Key";
             ComboBoxResponseCode.SelectedIndex = 0;
             ComboBoxBuyerOrSeller.SelectedIndex = 1; // Default to Seller, Buyer is checked at invoicing
-            ComboBoxBuyerOrSeller.Enabled = false; // Disable selection for now, as at moment only Seller is supported for updating supported documents
+            ComboBoxBuyerOrSeller.Enabled = true; // Disable selection eventualy, as at moment only Seller is supported for updating supported documents
 
             // Code Description
             // REC  Receiver unknown
