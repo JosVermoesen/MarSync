@@ -60,11 +60,11 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v3.0.2.2 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v3.0.3.2 [" + SharedGlobals.ActiveCompany + "]";
             }
             else
             {
-                Text = "MarSync v3.0.2.2 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v3.0.3.2 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
             }
             LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
 
@@ -1746,7 +1746,6 @@ namespace MarSync.MarioMenu.Actions
                     // Also check if already accepted or rejected and mark in the UI if so, this can be used to prioritize booking of accepted documents
                     // Note: the document may be marked as paid in the system but not yet have the paid status in the notifications API, so we check the paid status based on the DocumentId in the system (e.g. via GetBuyersBookStatusRS) instead of relying solely on the notifications API status
                     // Also if paid but still notifications exist, we can delete the notifications and move the file to archive, this can be a sign that the notifications were not yet processed in the system when the document was marked as paid, so we do not rely on the absence of notifications but really on the paid status in the system based on DocumentId
-                    // If the document is not paid, we can also check if it is accepted or rejected based on the notifications API and mark it in the UI, this can help to prioritize booking of accepted documents and also to easily identify rejected documents that may need follow-up with the supplier
                     // For the marking in the UI, we can use different colors or icons in the ListBoxDocumentsIn to indicate the status of each document (e.g. red for rejected, green for accepted, yellow for to be booked, etc.)
                     // This logic can be implemented in the following way:
                     //  1) Check the paid status in the system based on DocumentId (e.g. via GetBuyersBookStatusRS)
@@ -1784,7 +1783,7 @@ namespace MarSync.MarioMenu.Actions
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
                                 MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
-                            }
+                            }                            
                         }
 
                         // 2) Then delete all DOCUMENT_RECEIVED notifications for this document
@@ -2071,10 +2070,10 @@ namespace MarSync.MarioMenu.Actions
             // 4️⃣ Copy the renamed file to another location
             string destinationFolder = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in";
             // Directory.CreateDirectory(destinationFolder);    // ensure it exists
-            string destinationFile = Path.Combine(destinationFolder, documentId + ".xml");
+            string destinationPath = Path.Combine(destinationFolder, documentId + ".xml");
 
-            File.Copy(renamedFile, destinationFile, overwrite: true);
-            Console.WriteLine($"Copied to: {destinationFile}");
+            File.Copy(renamedFile, destinationPath, overwrite: true);
+            Console.WriteLine($"Copied to: {destinationPath}");
             // TODO: Remove the temporary renamed file if needed
             try
             {
@@ -2089,7 +2088,7 @@ namespace MarSync.MarioMenu.Actions
                 MessageBox.Show($"Error deleting temporary file: {ex.Message}");
             }
 
-            return destinationFile;
+            return destinationPath;
         }
         private async Task<string> CheckPeppolSupportedDocuments(string kbo)
         {
@@ -2137,7 +2136,7 @@ namespace MarSync.MarioMenu.Actions
                 documentId: "",
                 eventType: "",
                 peppolDocumentType: "",
-                sender: "0208:" + companyNumber,
+                sender: "",
                 receiver: "",
                 startDateTime: "",
                 endDateTime: "",
@@ -2519,7 +2518,7 @@ namespace MarSync.MarioMenu.Actions
                     CursorLocation = CursorLocationEnum.adUseClient
                 };
 
-                rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockReadOnly);
+                rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
 
                 if (rs.RecordCount != 1)
                 {
@@ -2571,7 +2570,7 @@ namespace MarSync.MarioMenu.Actions
                     }
                     catch
                     {
-                        // ignore close errors
+                        // ignore
                     }
 
                     try
@@ -2580,7 +2579,7 @@ namespace MarSync.MarioMenu.Actions
                     }
                     catch
                     {
-                        // ignore release errors
+                        // ignore
                     }
                 }
             }
@@ -2591,6 +2590,7 @@ namespace MarSync.MarioMenu.Actions
             int asReceived)
         {
             string sSQL;
+
             if (sellerDocument.Contains("|"))
             {
                 string[] parts = sellerDocument.Split('|');
@@ -2637,92 +2637,132 @@ namespace MarSync.MarioMenu.Actions
                 SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
 
             Recordset rs = null;
+            bool updateSuccessful = false;
+            int maxRetries = 5;  
+            int retryCount = 0;
+            int delayMs = 150; // Increase from 100ms to max 2400ms for better handling of locks
 
-            try
+            while (retryCount < maxRetries)
             {
-                // 1) Resolve v033 for this buyer document
-                rs = new Recordset
+                try
                 {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockReadOnly);
-
-                if (rs.RecordCount != 1)
-                {
-                    return false;
-                }
-
-                string marDocumentId = Convert.ToString(rs.Fields["v033"].Value);
-                rs.Close();
-                System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                rs = null;
-
-                // 2) Re-open for update by v033
-                string sSQLUpdate = "SELECT * FROM Dokumenten WHERE v033 = '" + marDocumentId + "'";
-
-                rs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(sSQLUpdate, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                if (rs.RecordCount != 1)
-                {
-                    return false;
-                }
-
-                string dbField;
-                if (asReceived == 1)
-                {
-                    dbField = "v408"; // responses JSON result
-                }
-                else if (asReceived == 0)
-                {
-                    dbField = "v406"; // server received JSON result
-                }
-                else
-                {
-                    return false;
-                }
-
-                rs.Fields[dbField].Value = jsonToSave;
-                rs.Fields["dnnSync"].Value = "False";
-                rs.Update();
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                if (rs != null)
-                {
-                    try
+                    // 1) Resolve v033 for this buyer document
+                    rs = new Recordset
                     {
-                        if (rs.State != 0)
+                        CursorLocation = CursorLocationEnum.adUseClient
+                    };
+
+                    rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
+
+                    if (rs.RecordCount != 1)
+                    {
+                        return false;
+                    }
+
+                    string marDocumentId = Convert.ToString(rs.Fields["v033"].Value);
+
+                    rs.Close();
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
+                    rs = null;
+
+                    // 2) Re-open for update by v033
+                    string sSQLUpdate = "SELECT * FROM Dokumenten WHERE v033 = '" + marDocumentId + "'";
+
+                    rs = new Recordset
+                    {
+                        CursorLocation = CursorLocationEnum.adUseClient
+                    };
+
+                    rs.Open(sSQLUpdate, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
+
+                    if (rs.RecordCount != 1)
+                    {
+                        return false;
+                    }
+
+                    string dbField;
+                    if (asReceived == 1)
+                    {
+                        dbField = "v408"; // responses JSON result
+                    }
+                    else if (asReceived == 0)
+                    {
+                        dbField = "v406"; // server received JSON result
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    rs.Fields[dbField].Value = jsonToSave;
+                    rs.Fields["dnnSync"].Value = "False";
+                    rs.Update();
+                    updateSuccessful = true;
+
+                    return true;
+                }
+                catch (System.Runtime.InteropServices.COMException comEx)
+                {
+                    // Check for lock-related exceptions (case-insensitive for robustness)
+                    if (comEx.Message.IndexOf("locked", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        retryCount++;
+                        if (retryCount < maxRetries)
                         {
-                            rs.Close();
+                            System.Threading.Thread.Sleep(delayMs);
+                            delayMs *= 2; // Exponential backoff
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
-                    catch
+                    else
                     {
-                        // ignore
+                        return false;
                     }
+                }
+                catch (Exception)
+                {
+                    if (updateSuccessful)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                finally
+                {
+                    if (rs != null)
+                    {
+                        try
+                        {
+                            if (rs.State != 0)
+                            {
+                                rs.Close();
+                            }
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
 
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    }
-                    catch
-                    {
-                        // ignore
+                        try
+                        {
+                            System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                        finally
+                        {
+                            rs = null;
+                        }
                     }
                 }
             }
+
+            return false;
         }
         public bool SetDocumentResultRS(
             string document,

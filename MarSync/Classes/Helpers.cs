@@ -166,6 +166,69 @@ namespace MarSync
     
     public class MarHelpers
     {
+
+        public static string PartRight(string theString, int theLength)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(theString) || theLength <= 0)
+                    return string.Empty;
+
+                int stringLength = theString.Length;
+                int start = stringLength - theLength + 1; // VB6 Mid is 1-based
+                if (start < 1)
+                    return string.Empty;
+
+                int index = start - 1; // C# Substring is 0-based
+                if (index >= theString.Length)
+                    return string.Empty;
+
+                int available = theString.Length - index;
+                int take = theLength < available ? theLength : available;
+                return take <= 0 ? string.Empty : theString.Substring(index, take);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        public static string PartLeft(string theString, int theLength)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(theString) || theLength <= 0)
+                    return string.Empty;
+
+                int take = theLength < theString.Length ? theLength : theString.Length;
+                return take <= 0 ? string.Empty : theString.Substring(0, take);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+
+        public static string PartMid(string theString, int thePosition, int theLength)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(theString) || thePosition < 1 || theLength <= 0)
+                    return string.Empty;
+
+                int index = thePosition - 1; // VB6 Mid is 1-based
+                if (index >= theString.Length)
+                    return string.Empty;
+
+                int available = theString.Length - index;
+                int take = theLength < available ? theLength : available;
+                return take <= 0 ? string.Empty : theString.Substring(index, take);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
         public static string ReadUBLInvoice(
             string filePath,
             bool messageBox,
@@ -257,7 +320,36 @@ namespace MarSync
                 msg.AppendLine("Supplier info");
                 msg.AppendLine("-------------");
 
-                companyId = NodeText(supplierNode, "cbc:EndpointID", ns);
+                string valueToUse = NodeText(supplierNode, "cbc:EndpointID", ns);                
+
+                if (valueToUse.Length == 12 && valueToUse.Contains("BE"))
+                {
+                    // Get only the VAT part of number
+                    valueToUse = PartMid(valueToUse, 3, valueToUse.Length - 2);
+                }
+                else if (valueToUse.Length == 13 && PartLeft(valueToUse, 2) == "54")
+                {
+                    // Global Location Number company in Belgium or Luxembourg
+                    valueToUse = NodeText(supplierNode, "cac:PartyIdentification/cbc:ID", ns);
+                    if (valueToUse.Length == 10)
+                    {
+                        // ok
+                    }
+                    else
+                    {
+                        MessageBox.Show("VAT number? " + valueToUse, string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+                else if (valueToUse.Length == 13)
+                {
+                    // Global Location Number of company outside Belgium
+                    // MessageBox.Show("Global Company Number Outside Belgium" + Environment.NewLine + Environment.NewLine + valueToUse,
+                    //    string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    valueToUse = NodeText(supplierNode, "cac:PartyIdentification/cbc:ID", ns);
+                }
+
+                companyId = valueToUse;
+                // companyId = NodeText(supplierNode, "cbc:EndpointID", ns);
                 string supplierId = NodeText(supplierNode, "cac:PartyIdentification/cbc:ID", ns);
                 partyName = NodeText(supplierNode, "cac:PartyName/cbc:Name", ns);
                 streetName = NodeText(supplierNode, "cac:PostalAddress/cbc:StreetName", ns);

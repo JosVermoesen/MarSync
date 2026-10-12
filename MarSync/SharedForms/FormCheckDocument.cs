@@ -16,7 +16,7 @@ namespace MarSync.SharedForms
 {
     public partial class FormCheckDocument : Form
     {
-        private readonly string folderOutPath;
+        // private readonly string folderOutPath;
 
         public FormCheckDocument()
         {
