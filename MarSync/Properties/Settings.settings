@@ -2,16 +2,16 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MarSync.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="MdvSetting2025" Type="System.String" Scope="User">
+    <Setting Name="MdvSetting2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="LocalSQLSetting2025" Type="System.String" Scope="User">
+    <Setting Name="LocalSQLSetting2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="HostedSQLSetting2025" Type="System.String" Scope="User">
+    <Setting Name="HostedSQLSetting2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="PathSPSetting2025" Type="System.String" Scope="User">
+    <Setting Name="PathSPSetting2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
     <Setting Name="False" Type="System.Boolean" Scope="User">
@@ -32,19 +32,19 @@
     <Setting Name="IsUpgraded" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="IsAdmin" Type="System.Boolean" Scope="User">
+    <Setting Name="IsAdmin2030" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
-    <Setting Name="TestGuidToControl" Type="System.String" Scope="User">
+    <Setting Name="TestGuidToControl2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="ProdGuidToControl" Type="System.String" Scope="User">
+    <Setting Name="ProdGuidToControl2027" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
     </Setting>
-    <Setting Name="PeppolTestMode" Type="System.Boolean" Scope="User">
+    <Setting Name="PeppolTestMode2027" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">True</Value>
     </Setting>
-    <Setting Name="UserCanToggleTabs" Type="System.Boolean" Scope="User">
+    <Setting Name="UserCanToggleTabs2027" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">False</Value>
     </Setting>
     <Setting Name="LastSelectedCompany" Type="System.String" Scope="User">

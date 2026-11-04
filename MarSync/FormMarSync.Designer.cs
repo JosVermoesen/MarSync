@@ -46,6 +46,9 @@
             this.CheckDocumentToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStrip = new System.Windows.Forms.ToolStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripLabel();
+            this.MenuItemPeppolClientSettings = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.MenuStripFormMario.SuspendLayout();
             this.ToolStrip.SuspendLayout();
             this.SuspendLayout();
@@ -69,6 +72,9 @@
             this.MenuItemZipCompany,
             this.MenuItemPeppolActions,
             this.MenuItemPepolArchive,
+            this.toolStripSeparator2,
+            this.MenuItemPeppolClientSettings,
+            this.toolStripSeparator1,
             this.MenuItemCloseApp});
             this.ActionsMenuItem.Name = "ActionsMenuItem";
             this.ActionsMenuItem.Size = new System.Drawing.Size(51, 20);
@@ -77,28 +83,28 @@
             // MenuItemUserSettings
             // 
             this.MenuItemUserSettings.Name = "MenuItemUserSettings";
-            this.MenuItemUserSettings.Size = new System.Drawing.Size(189, 22);
+            this.MenuItemUserSettings.Size = new System.Drawing.Size(191, 22);
             this.MenuItemUserSettings.Text = "Bedrijf Activeren";
             this.MenuItemUserSettings.Click += new System.EventHandler(this.MenuItemUserSettings_Click);
             // 
             // MenuItemZipCompany
             // 
             this.MenuItemZipCompany.Name = "MenuItemZipCompany";
-            this.MenuItemZipCompany.Size = new System.Drawing.Size(189, 22);
+            this.MenuItemZipCompany.Size = new System.Drawing.Size(191, 22);
             this.MenuItemZipCompany.Text = "Actief Bedrijf Zippen";
             this.MenuItemZipCompany.Click += new System.EventHandler(this.MenuItemZipCompany_Click);
             // 
             // MenuItemPeppolActions
             // 
             this.MenuItemPeppolActions.Name = "MenuItemPeppolActions";
-            this.MenuItemPeppolActions.Size = new System.Drawing.Size(189, 22);
+            this.MenuItemPeppolActions.Size = new System.Drawing.Size(191, 22);
             this.MenuItemPeppolActions.Text = "Peppol Sync";
             this.MenuItemPeppolActions.Click += new System.EventHandler(this.MenuItemPeppolActions_Click);
             // 
             // MenuItemPepolArchive
             // 
             this.MenuItemPepolArchive.Name = "MenuItemPepolArchive";
-            this.MenuItemPepolArchive.Size = new System.Drawing.Size(189, 22);
+            this.MenuItemPepolArchive.Size = new System.Drawing.Size(191, 22);
             this.MenuItemPepolArchive.Text = "Peppol Bedrijfsarchief";
             this.MenuItemPepolArchive.Click += new System.EventHandler(this.MenuItemPepolArchive_Click);
             // 
@@ -106,7 +112,7 @@
             // 
             this.MenuItemCloseApp.Name = "MenuItemCloseApp";
             this.MenuItemCloseApp.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Alt | System.Windows.Forms.Keys.F4)));
-            this.MenuItemCloseApp.Size = new System.Drawing.Size(189, 22);
+            this.MenuItemCloseApp.Size = new System.Drawing.Size(191, 22);
             this.MenuItemCloseApp.Text = "Afsluiten";
             this.MenuItemCloseApp.Click += new System.EventHandler(this.MenuItemCloseApp_Click);
             // 
@@ -191,6 +197,23 @@
             this.ToolStripStatusLabel.Size = new System.Drawing.Size(39, 22);
             this.ToolStripStatusLabel.Text = "Ready";
             // 
+            // MenuItemPeppolClientSettings
+            // 
+            this.MenuItemPeppolClientSettings.Name = "MenuItemPeppolClientSettings";
+            this.MenuItemPeppolClientSettings.Size = new System.Drawing.Size(191, 22);
+            this.MenuItemPeppolClientSettings.Text = "Gebruikersinstellingen";
+            this.MenuItemPeppolClientSettings.Click += new System.EventHandler(this.MenuItemPeppolClientSettings_Click);
+            // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(188, 6);
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(188, 6);
+            // 
             // FormMarSync
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -234,5 +257,8 @@
         private System.Windows.Forms.ToolStripMenuItem MenuItemPepolArchive;
         private System.Windows.Forms.ToolStripMenuItem MenuItemAutoPageBreak;
         private System.Windows.Forms.ToolStripMenuItem CheckDocumentToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem MenuItemPeppolClientSettings;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
     }
 }

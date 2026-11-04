@@ -22,34 +22,6 @@ namespace MarSync.MarioMenu.Actions
             }
         }
 
-        private void CheckBoxIsAdmin_CheckedChanged(object sender, System.EventArgs e)
-        {
-            TextBoxIsAdminPassword.Visible = CheckBoxIsAdmin.Checked;
-            ButtonValidate.Visible = CheckBoxIsAdmin.Checked;
-
-        }
-        private void ButtonValidate_Click(object sender, System.EventArgs e)
-        {
-            if (TextBoxIsAdminPassword.Text == "Thequickbrownfoxjumpsoverthelazydog123!")
-            {
-                SharedGlobals.IsAdmin = true;
-                Properties.Settings.Default.IsAdmin = true;
-                Properties.Settings.Default.Save();
-                MessageBox.Show("Admin rechten verkregen.\nHerstart het programma om de admin rechten beschikbaar te maken.");
-                TextBoxIsAdminPassword.Visible = false;
-                ButtonValidate.Visible = false;
-                CheckBoxIsAdmin.Checked = false;
-            }
-            else
-            {
-                Properties.Settings.Default.IsAdmin = false;
-                Properties.Settings.Default.Save();
-                SharedGlobals.IsAdmin = false;
-                MessageBox.Show("Foutief paswoord");
-            }
-            TextBoxIsAdminPassword.Text = "";
-
-        }
         private void ButtonClose_Click(object sender, System.EventArgs e)
         {
             SharedGlobals.NotificationsReceiverALL = "";
@@ -68,11 +40,11 @@ namespace MarSync.MarioMenu.Actions
                 if (separatorPos > 0)
                 {
                     string selectedCompany = selectedItem.Substring(0, separatorPos);
-                    // check if company is 098 to 099 (demo companies)
-                    if (selectedCompany == "098" && SharedGlobals.ApiModus == "PRODUCTIE" || selectedCompany == "099" && SharedGlobals.ApiModus == "PRODUCTIE")
+                    // check if company is 091 to 099 (demo companies)
+                    if (int.TryParse(selectedCompany, out int companyNum) && companyNum >= 91 && companyNum <= 99 && SharedGlobals.ApiModus == "PRODUCTIE")
                     {
                         MessageBox.Show(
-                            "Waarschuwing: De demo bedrijven 098 en 099 zijn niet geschikt voor productie gebruik.\n\n" +
+                            "Waarschuwing: De demo bedrijven 091 tot en met 099 zijn niet geschikt voor productie gebruik.\n\n" +
                             "Gelieve een ander bedrijf te kiezen.",
                             SharedGlobals.ApiModus,
                             MessageBoxButtons.OK,
@@ -81,13 +53,13 @@ namespace MarSync.MarioMenu.Actions
                         return;
                     }
 
-                    // check if company is 001 to 097 (real companies)  
+                    // check if company is 001 to 090 (real companies)  
                     if (int.TryParse(selectedCompany, out int companyNumber))
                     {
-                        if (companyNumber >= 1 && companyNumber <= 97 && SharedGlobals.ApiModus == "TESTMODE")
+                        if (companyNumber >= 1 && companyNumber <= 90 && SharedGlobals.ApiModus == "TESTMODE")
                         {
                             MessageBox.Show(
-                                "Waarschuwing: De echte bedrijven 001 tot en met 097 zijn niet geschikt voor test gebruik.\n\n" +
+                                "Waarschuwing: De echte bedrijven 001 tot en met 090 zijn niet geschikt voor test gebruik.\n\n" +
                                 "Gelieve een ander bedrijf te kiezen.",
                                 SharedGlobals.ApiModus,
                                 MessageBoxButtons.OK,
@@ -281,27 +253,6 @@ namespace MarSync.MarioMenu.Actions
         
         private void FormChooseCompany_Load(object sender, EventArgs e)
         {
-            if (SharedGlobals.UserTestGuid != MyApiSecrets.guidTestAccess)
-            {
-                LabelTestGuid.Visible = true;
-                TextBoxTestGuidToValidate.Visible = true;
-                ButtonValidateTestGuid.Visible = true;                
-            }
-
-            if (SharedGlobals.UserProdGuid != MyApiSecrets.guidProdAccess)
-            {
-                LabelProdGuid.Visible = true;
-                TextBoxProdGuidToValidate.Visible = true;
-                ButtonValidateProdGuid.Visible = true;
-            }
-
-            if (!SharedGlobals.UserCanToggleTabs)
-            {
-                LabelToggleTabs.Visible = true;
-                TextBoxGuidToggleTabsToValidate.Visible = true;
-                ButtonValidateToggleTabs.Visible = true;
-            }
-
             if (SharedGlobals.ApiModus == "TESTMODE")
             {
                 RadioButtonTestMode.Checked = true;
@@ -317,7 +268,7 @@ namespace MarSync.MarioMenu.Actions
             if (RadioButtonTestMode.Checked)
             {
                 MarHelpers.SetApiMode("TESTMODE");
-                Properties.Settings.Default.PeppolTestMode = true;
+                Properties.Settings.Default.PeppolTestMode2027 = true;
                 Properties.Settings.Default.Save();                
             }
         }
@@ -329,7 +280,7 @@ namespace MarSync.MarioMenu.Actions
                 if (SharedGlobals.UserProdGuid.Trim() != "")
                 {
                     MarHelpers.SetApiMode("PRODUCTIE");
-                    Properties.Settings.Default.PeppolTestMode = false;
+                    Properties.Settings.Default.PeppolTestMode2027 = false;
                     Properties.Settings.Default.Save();
                 }
                 else
@@ -359,86 +310,6 @@ namespace MarSync.MarioMenu.Actions
             {
                 ListBoxCompanies_Click (this, new EventArgs());
             }
-        }
-
-        private void ButtonValidateProdGuid_Click(object sender, EventArgs e)
-        {
-            string guidProdInput = TextBoxProdGuidToValidate.Text;
-            if (guidProdInput.Length != 36)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven Productie GUID is niet correct.\nEen geldige GUID heeft 36 tekens.");
-                TextBoxProdGuidToValidate.Text = "";
-                return;
-            }
-
-            if (guidProdInput != MyApiSecrets.guidProdAccess)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven Productie GUID komt niet overeen met de verwachte GUID.\nControleer of de GUID correct is.");
-                TextBoxProdGuidToValidate.Text = "";
-                return;
-            }
-            SharedGlobals.UserProdGuid = TextBoxProdGuidToValidate.Text;
-            MessageBox.Show("De ingegeven Productie GUID is correct.\nU kan nu aan de slag met Peppol voor marIntegraal.");
-            Properties.Settings.Default.ProdGuidToControl = SharedGlobals.UserProdGuid;
-            Properties.Settings.Default.PeppolTestMode = false;
-            Properties.Settings.Default.Save();
-
-            LabelProdGuid.Visible = false;
-            TextBoxProdGuidToValidate.Visible = false;
-            ButtonValidateProdGuid.Visible = false;
-
-        }
-
-        private void ButtonValidateTestGuid_Click(object sender, EventArgs e)
-        {
-            string guidTestInput = TextBoxTestGuidToValidate.Text;
-            if (guidTestInput.Length != 36)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven GUID is niet correct.\nEen geldige GUID heeft 36 tekens.");
-                TextBoxTestGuidToValidate.Text = "";
-                return;
-            }
-
-            if (guidTestInput != MyApiSecrets.guidTestAccess)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven Test GUID komt niet overeen met de verwachte GUID.\nControleer of de GUID correct is.");
-                TextBoxTestGuidToValidate.Text = "";
-                return;
-            }
-            SharedGlobals.UserTestGuid = TextBoxTestGuidToValidate.Text;
-            MessageBox.Show("De ingegeven Test GUID is correct.\nU kan nu aan de slag met Peppol voor marIntegraal.");
-            Properties.Settings.Default.TestGuidToControl = SharedGlobals.UserTestGuid;
-            Properties.Settings.Default.Save();
-
-            LabelTestGuid.Visible = false;
-            TextBoxTestGuidToValidate.Visible = false;
-            ButtonValidateTestGuid.Visible = false;
-        }
-
-        private void ButtonValidateToggleTabs_Click(object sender, EventArgs e)
-        {
-            string guidToggleTabsInput = TextBoxGuidToggleTabsToValidate.Text;
-            if (guidToggleTabsInput.Length != 36)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven GUID is niet correct.\nEen geldige GUID is 36 tekens lang.");
-                TextBoxGuidToggleTabsToValidate.Text = "";
-                return;
-            }
-
-            if (guidToggleTabsInput != MyApiSecrets.guidToggleTabs)
-            {
-                MessageBox.Show("Waarschuwing: de ingegeven GUID komt niet overeen met de verwachte GUID.\nControleer of de GUID correct is.");
-                TextBoxGuidToggleTabsToValidate.Text = "";
-                return;
-            }
-            SharedGlobals.UserCanToggleTabs = true;
-            MessageBox.Show("De ingegeven GUID is correct.\nU krijgt toegang tot de TAB pagina's.");
-            Properties.Settings.Default.UserCanToggleTabs = SharedGlobals.UserCanToggleTabs;            
-            Properties.Settings.Default.Save();
-
-            LabelToggleTabs.Visible = false;
-            TextBoxGuidToggleTabsToValidate.Visible = false;
-            ButtonValidateToggleTabs.Visible = false;
-        }
+        }        
     }
 }

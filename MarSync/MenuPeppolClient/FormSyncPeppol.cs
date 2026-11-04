@@ -5,6 +5,8 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.OleDb;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -60,11 +62,11 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v3.0.3.2 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v4.0.0.0 [" + SharedGlobals.ActiveCompany + "]";
             }
             else
             {
-                Text = "MarSync v3.0.3.2 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v4.0.0.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
             }
             LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
 
@@ -254,7 +256,7 @@ namespace MarSync.MarioMenu.Actions
             }
         }
 
-        async private void RefreshMonitor(bool withActions)
+        async private Task RefreshMonitor(bool withActions)
         {
             titanicDeckChairs = 0;
             Application.UseWaitCursor = true;
@@ -288,13 +290,18 @@ namespace MarSync.MarioMenu.Actions
                 if (totalInMapOut > 0)
                 {
                     LabelTotalInMapOutSent.Text = totalInMapOutSent.ToString();
-                    RefreshCyclePeppolSent();
+                    await RefreshCyclePeppolSent();
+                }
+                else
+                {
+                    // Even if no documents to process, update the label to show current count
+                    LabelTotalInMapOutSentConfirmed.Text = totalInMapOutSentConfirmed.ToString();
                 }
             }
 
             if (withActions)
             {
-                RefreshCyclePeppolReceive();
+                await RefreshCyclePeppolReceive();
                 // RefreshCyclePeppolReceive("0208:");
                 // if (CheckBoxAccept9925.Checked) {
                 //     RefreshCyclePeppolReceive("9925:BE");
@@ -543,11 +550,11 @@ namespace MarSync.MarioMenu.Actions
 
                 string documentId = ReadUBLInvoice(outputFile, false, true, false, false, false).ToUpper();
                 string destinationPath = MoveXmlDocumentReceivedToMarPeppolIn(documentId);
-                ToolStripStatusLabel.Text = "UBL Invoice " + documentId + ".XML retrieved and saved successfully.";
+                ToolStripStatusLabel.Text = "UBL Document " + documentId + ".XML opgehaald en bewaard met succes.";
 
                 MessageBox.Show(
-                    "UBL Invoice XML retrieved and saved successfully.\n\n" +
-                    $"Invoice saved to: {documentId}",
+                    "UBL Document XML opgehaald en bewaard met succes.\n\n" +
+                    $"Document bewaard als: {documentId}",
                     "Success",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
@@ -592,7 +599,7 @@ namespace MarSync.MarioMenu.Actions
             }
             else
             {
-                ToolStripStatusLabel.Text = "Failed Public Peppol Registration Search";
+                ToolStripStatusLabel.Text = "Mislukte Peppol Registratie Zoekopdracht";
                 RichTextBoxResponses.Text = "";
             }
         }
@@ -659,8 +666,8 @@ namespace MarSync.MarioMenu.Actions
             }
             else
             {
-                ToolStripStatusLabel.Text = "Failed to update Customers Supported Documents.";
-                MessageBox.Show("Failed to update Customers Supported Documents.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ToolStripStatusLabel.Text = "Mislukt bijwerken van Klanten Ondersteunde Documenten.";
+                MessageBox.Show("Mislukt bijwerken van Klanten Ondersteunde Documenten.", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 ToolStripStatusLabel.Text = "Er zijn fouten. Klanten met dubbele ondernemingsnummer enz.";
             }
 
@@ -725,26 +732,26 @@ namespace MarSync.MarioMenu.Actions
 
                 if (result != null)
                 {
-                    ToolStripStatusLabel.Text = "Invoice Response sent successfully.";
+                    ToolStripStatusLabel.Text = "Document Response succesvol verzonden.";
                     var deserializedString = JsonConvert.DeserializeObject(result.ResponseBody);
                     RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
                     MessageBox.Show(
                         RichTextBoxResponses.Text,
-                        "Send Invoice Response Result",
+                        "Resultaat Verzenden Documentreactie",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Information
                     );
                 }
                 else
                 {
-                    ToolStripStatusLabel.Text = "Failed to send Invoice Response.";
+                    ToolStripStatusLabel.Text = "Mislukt verzenden Documentreactie.";
                     RichTextBoxResponses.Text = "";
                 }
             }
             catch (Exception ex)
             {
-                ToolStripStatusLabel.Text = $"Error: {ex.Message}";
-                MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
+                MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -817,7 +824,7 @@ namespace MarSync.MarioMenu.Actions
 
             if (jsonResponse != null)
             {
-                ToolStripStatusLabel.Text = "Notifications retrieved successfully.";
+                ToolStripStatusLabel.Text = "Meldingen succesvol opgehaald.";
                 var deserializedString = JsonConvert.DeserializeObject(jsonResponse);
                 RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
                 // DoPopUpDataGridJsonData(RichTextBoxResponses.Text); // Show the result in a popup with JSON table view
@@ -873,7 +880,7 @@ namespace MarSync.MarioMenu.Actions
             }
             else
             {
-                ToolStripStatusLabel.Text = "Failed to retrieve notifications.";
+                ToolStripStatusLabel.Text = "Mislukt ophalen van meldingen.";
                 RichTextBoxResponses.Text = "";
             }
         }
@@ -1310,10 +1317,10 @@ namespace MarSync.MarioMenu.Actions
             }
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private async void Timer_Tick(object sender, EventArgs e)
         {
-            ToolStripStatusLabel.Text = "Refreshing lists...";
-            // RefreshMonitor(false); // Call with 'true' to perform full refresh with actions
+            ToolStripStatusLabel.Text = "Lijsten worden vernieuwd...";
+            await RefreshMonitor(true); // Call with 'true' to perform full refresh with actions
         }
 
         private void CountdownTimer_Tick(object sender, EventArgs e)
@@ -1492,7 +1499,7 @@ namespace MarSync.MarioMenu.Actions
             }
         }
 
-        async private void RefreshCyclePeppolSent()
+        async private Task RefreshCyclePeppolSent()
         {
             int localTotalOutSentConfirmed = 0;
             int localTotalInMapOutAcceptedOrRejected = 0;
@@ -1504,15 +1511,21 @@ namespace MarSync.MarioMenu.Actions
             {
                 string documentId = MarHelpers.ReadUBLInvoice(item.ToString(), false, false, false, false, false).ToUpper();
                 string existingResult = GetSellersDocumentSentResultRS(documentId, false);
+
                 if (existingResult != "")
                 {
                     // Check the notifications API for the SENT status of this document                    
                     string virtualResultSent = FilterJson(documentId, true, "DOCUMENT_SENT");
-                    if (IsDocumentSent(virtualResultSent) == true)
+
+                    bool isSent = IsDocumentSent(virtualResultSent);
+
+                    if (isSent == true)
                     {
                         bool updatedRS = SetDocumentResultRS(documentId, virtualResultSent, 1);
                         if (updatedRS)
+                        {
                             localTotalOutSentConfirmed++;
+                        }
                     }
 
                     string virtualResponses = FilterJson(documentId, false, "INVOICE_RESPONSE_RECEIVED");
@@ -1630,23 +1643,24 @@ namespace MarSync.MarioMenu.Actions
                         }
                         else
                         {
-                            ToolStripStatusLabel.Text = "No response body.";
+                            ToolStripStatusLabel.Text = "Geen response body.";
                         }
                     }
                     catch (Exception ex)
                     {
-                        ToolStripStatusLabel.Text = $"Error: {ex.Message}";
-                        // MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
+                        // MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }                    
                 }
             }
             totalInMapOutSentConfirmed = localTotalOutSentConfirmed;
             totalInMapOutAcceptedOrRejected = localTotalInMapOutAcceptedOrRejected;
-            LabelTotalInMapOutSentConfirmed.Text = totalInMapOutSentConfirmed.ToString();
-            RefreshListPeppolSend();
+            // Show documents that were successfully sent to Peppol (have transmissionId)
+            LabelTotalInMapOutSentConfirmed.Text = totalInMapOutSent.ToString();
+            await RefreshListPeppolSend();
         }
 
-        async private void RefreshCyclePeppolReceive()
+        async private Task RefreshCyclePeppolReceive()
         {
             totalInMapInToBook = 0;
             string folderInPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in";
@@ -1721,8 +1735,8 @@ namespace MarSync.MarioMenu.Actions
                         // 2) If no existing hash or mismatch, simply (re)register
                         repo.RegisterIncomingDocument(documentId, destinationPath);
 
-                        ToolStripStatusLabel.Text = "UBL Invoice " + sanitizedDocumentIdForSaving + ".XML retrieved and saved successfully.";
-                        Console.WriteLine("UBL Invoice retrieved and saved successfully at: " + destinationPath);
+                        ToolStripStatusLabel.Text = "UBL Invoice " + sanitizedDocumentIdForSaving + ".XML succesvol opgehaald en opgeslagen.";
+                        Console.WriteLine("UBL Invoice succesvol opgehaald en opgeslagen op: " + destinationPath);
                         titanicDeckChairs++;
                         totalInMapInToBook++;
 
@@ -1734,7 +1748,7 @@ namespace MarSync.MarioMenu.Actions
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message);
-                        ToolStripStatusLabel.Text = "Ready";
+                        ToolStripStatusLabel.Text = "Klaar";
                     }
                 }
                 else
@@ -1782,7 +1796,7 @@ namespace MarSync.MarioMenu.Actions
                             var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
-                                MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
                             }                            
                         }
 
@@ -1795,11 +1809,11 @@ namespace MarSync.MarioMenu.Actions
                             var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
-                                MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
                             }
                         }
 
-                        ToolStripStatusLabel.Text = balansOfPayments;
+                        // ToolStripStatusLabel.Text = balansOfPayments;
                         titanicDeckChairs++;
 
                         // 3) Only after all deletes are awaited, move the XML file to archive
@@ -1813,14 +1827,14 @@ namespace MarSync.MarioMenu.Actions
                     {
                         string manyRef = MarHelpers.ReadUBLInvoice(filePath, false, false, false, true, false);
 
-                        // Already received, then check if it is booked  
+                        // Al ontvangen, controleer dan of het is geboekt  
                         string virtualResultJson = FilterJson(documentRef, false, "DOCUMENT_RECEIVED");
                         bool booked = SetBuyersBookStatusRS(manyRef, virtualResultJson, 0);
                         if (!booked)
                         {
                             totalInMapInToBook++;
                         }
-                        ToolStripStatusLabel.Text = "Document " + documentRef + " bewaard in database.";
+                        // ToolStripStatusLabel.Text = "Document " + documentRef + " bewaard in database.";
 
                         string virtualReactJson = FilterJson(documentRef, true, "INVOICE_RESPONSE_SENT");
 
@@ -1835,31 +1849,31 @@ namespace MarSync.MarioMenu.Actions
                         }
                         else
                         {
-                            ToolStripStatusLabel.Text = "Document " + documentRef + " geen reacties om te bewaren.";
+                            // ToolStripStatusLabel.Text = "Document " + documentRef + " geen reacties om te bewaren.";
                         }
                     }
                 }
             }
-            RefreshListPeppolReceive();
+            await RefreshListPeppolReceive();
 
             // Create a snapshot of the items to avoid modification during enumeration
             var itemsSnapshot = ListBoxDocumentsIn.Items.Cast<object>().ToList();
             foreach (var item in itemsSnapshot)
             {
-                // Check if notification DOCUMENT_RECEIVED exists for this document
+                // Controleer of de melding DOCUMENT_RECEIVED bestaat voor dit document
                 string cleanUpDocument = MarHelpers.ReadUBLInvoice(item.ToString(), false, true, false, false, false);
                 string resultReceived = FilterJson(cleanUpDocument, false, "DOCUMENT_RECEIVED");
                 int[] notificationFound = GetNotificationIds(resultReceived);
 
                 if (notificationFound.Length == 0)
                 {
-                    // If we found no document notification, we can remove them
+                    // Als we geen documentmelding hebben gevonden, kunnen we ze verwijderen
                     string arrayRef = MarHelpers.ReadUBLInvoice(item.ToString(), false, false, false, true, false);
                     string balansOfPayments = GetBuyersBookStatusRS(arrayRef);
 
                     if (balansOfPayments == "Volledig Betaald")
                     {                        
-                        // 0. Paid and notifications should also be removed so now sure to move to archive
+                        // 0. Betaald en meldingen moeten ook worden verwijderd, dus nu zeker naar archief verplaatsen
                         string resultMove =
                             MarDataFilesHelper.MovePeppolFileToCloudDrive(
                                 item.ToString(),
@@ -1892,11 +1906,11 @@ namespace MarSync.MarioMenu.Actions
                     }
                 }
             }
-            RefreshListPeppolReceive();
+            await RefreshListPeppolReceive();
             ToolStripStatusLabel.Text = "Klaar. Druk [Esc] om te sluiten.";
         }
 
-        private void RefreshListPeppolReceive()
+        async private Task RefreshListPeppolReceive()
         {
             string folderInPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in";
             totalInMapIn = 0;
@@ -1910,13 +1924,13 @@ namespace MarSync.MarioMenu.Actions
             }
             else
             {
-                ToolStripStatusLabel.Text = "Geen ontvangen documenten voor " + SharedGlobals.ActiveCompany;
+                // ToolStripStatusLabel.Text = "Geen ontvangen documenten voor " + SharedGlobals.ActiveCompany;
                 ListBoxDocumentsIn.Visible = false;
             }
             totalInMapIn = ListBoxDocumentsIn.Items.Count;
             LabelTotalInMapIn.Text = totalInMapIn.ToString();
         }
-        private void RefreshListPeppolSend()
+        async private Task RefreshListPeppolSend()
         {
             totalInMapOut = 0;
             string folderOutPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\out";
@@ -1931,7 +1945,7 @@ namespace MarSync.MarioMenu.Actions
             }
             else
             {
-                ToolStripStatusLabel.Text = "Geen te verzenden documenten voor " + SharedGlobals.ActiveCompany;
+                // ToolStripStatusLabel.Text = "Geen te verzenden documenten voor " + SharedGlobals.ActiveCompany;
                 ListBoxDocumentsOut.Visible = false;
             }
             totalInMapOut = ListBoxDocumentsOut.Items.Count;
@@ -1939,12 +1953,14 @@ namespace MarSync.MarioMenu.Actions
 
             // Refresh the real number of total files to be sent
             int localTotalOutToEval = 0;
+            int localTotalOutWithResults = 0;
             foreach (var item in ListBoxDocumentsOut.Items)
             {
                 string documentId = ReadUBLInvoice(item.ToString(), false, false, false, false, false).ToUpper();
                 string existingResult = GetSellersDocumentSentResultRS(documentId, false); // false for check SENT true for reactions?
                 if (existingResult != "")
                 {
+                    localTotalOutWithResults++;
                     localTotalOutToEval++;
                 }
             }
@@ -2273,737 +2289,7 @@ namespace MarSync.MarioMenu.Actions
             string numPart = itemText.Substring(4, 2); // "NN"
             return int.TryParse(numPart, out int week) ? week : 0;
         }
-
         
-        public string GetSellersDocumentSentResultRS(
-            string document,
-            bool checkAcceptedOrRejected)
-        {
-            string sSQL =
-                "SELECT v033, v405, v406, dnnSync FROM Dokumenten WHERE v033 = '" +
-                document.Substring(0, 11) + "'";
-
-            string connectionString =
-                SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset rs = null;
-
-            try
-            {
-                rs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(
-                    sSQL,
-                    connectionString,
-                    CursorTypeEnum.adOpenDynamic,
-                    LockTypeEnum.adLockOptimistic);
-
-                if (rs.RecordCount != 1)
-                {
-                    return string.Empty;
-                }
-
-                string fieldToCheck = checkAcceptedOrRejected ? "v406" : "v405";
-                string fieldValue = string.Empty;
-
-                try
-                {
-                    if (!Convert.IsDBNull(rs.Fields[fieldToCheck].Value))
-                    {
-                        fieldValue = Convert.ToString(rs.Fields[fieldToCheck].Value);
-
-                        // Clear transient/invalid states
-                        if (!string.IsNullOrEmpty(fieldValue) &&
-                            (fieldValue.Contains("VALIDATION_ERROR") || fieldValue.Contains("SCHEDULED")))
-                        {
-                            fieldValue = string.Empty;
-
-                            try
-                            {
-                                rs.Fields[fieldToCheck].Value = "";
-                                rs.Fields["dnnSync"].Value = "False";
-                                rs.Update();
-                            }
-                            catch
-                            {
-                                // ignore update errors; just return empty
-                            }
-                        }
-                    }
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Error retrieving field value in GetSellersDocumentSentResultRS.");
-                    throw;
-                }
-
-                return fieldValue;
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Error opening recordset in GetSellersDocumentSentResultRS.");
-                throw;
-            }
-            finally
-            {
-                if (rs != null)
-                {
-                    try
-                    {
-                        if (rs.State != 0)
-                        {
-                            rs.Close();
-                        }
-                    }
-                    catch
-                    {
-                        // ignore close errors
-                    }
-
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    }
-                    catch
-                    {
-                        // ignore release errors
-                    }
-                }
-            }
-        }
-        public bool GetSellersPaidResultRS(string document)
-        {
-            string sSQL =
-                "SELECT v033, v037, v249 FROM Dokumenten WHERE v033 = '" +
-                document.Substring(0, 11) + "'";
-
-            string connectionString =
-                SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset rs = null;
-
-            try
-            {
-                rs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(
-                    sSQL,
-                    connectionString,
-                    CursorTypeEnum.adOpenDynamic,
-                    LockTypeEnum.adLockOptimistic);
-
-                // Expect exactly one matching document
-                if (rs.RecordCount != 1)
-                {
-                    return false;
-                }
-
-                try
-                {
-                    decimal openAmount = 0m;
-                    decimal paidAmount = 0m;
-
-                    object v249Value = rs.Fields["v249"].Value;
-                    if (!Convert.IsDBNull(v249Value))
-                    {
-                        openAmount = Convert.ToDecimal(v249Value);
-                    }
-
-                    object v037Value = rs.Fields["v037"].Value;
-                    if (!Convert.IsDBNull(v037Value))
-                    {
-                        paidAmount = Convert.ToDecimal(v037Value);
-                    }
-
-                    // Fully paid when remaining open amount is zero
-                    return openAmount - paidAmount == 0m;
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("Error processing payment status in GetSellersPaidResultRS recordset.");
-                    throw;
-                }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Error opening recordset in GetSellersPaidResultRS.");
-                throw;
-            }
-            finally
-            {
-                if (rs != null)
-                {
-                    try
-                    {
-                        if (rs.State != 0)
-                        {
-                            rs.Close();
-                        }
-                    }
-                    catch
-                    {
-                        // ignore close errors
-                    }
-
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    }
-                    catch
-                    {
-                        // ignore release errors
-                    }
-                }
-            }
-        }
-        public string GetBuyersBookStatusRS(string sellerDocument)
-        {
-            string sSQL;
-            if (sellerDocument.Contains("|"))
-            {
-                string[] parts = sellerDocument.Split('|');
-                if (parts.Length == 3)
-                {
-                    string companyId = parts[0]; // companyId + "|" + documentId + "|" + paymentId;
-                    string documentId = parts[1];
-                    string paymentId = parts[2];
-
-                    if (companyId.StartsWith("BE"))
-                    {
-                        companyId = companyId.Substring(2); // Remove the first two characters
-                    }
-                    if (string.IsNullOrEmpty(paymentId))
-                    {
-                        paymentId = SanitizePaymentRef(documentId);
-                    }
-
-                    sSQL =
-                        "SELECT " +
-                        "Leveranciers.A110, Leveranciers.v404, " +
-                        "Dokumenten.v409, Dokumenten.v034, Dokumenten.v035, Dokumenten.v036, Dokumenten.v037, Dokumenten.v039, Dokumenten.v249 " +
-                        "FROM  Leveranciers, Dokumenten " +
-                        "WHERE Leveranciers.v404 = '" + companyId + "' " +
-                        "AND Dokumenten.v034 = 'L'+Leveranciers.A110 " +
-                        "AND Dokumenten.v409 = '" + documentId + "' " +
-                        "AND Dokumenten.v039 = '" + paymentId + "'";
-                }
-                else
-                {
-                    return "Nog in te boeken";
-                }
-            }
-            else
-            {
-                sSQL =
-                    "SELECT v037, v039, v249, v409 " +
-                    "FROM Dokumenten " +
-                    "WHERE v409 = '" + sellerDocument + "'";
-            }
-
-            string connectionString =
-                SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset rs = null;
-
-            try
-            {
-                rs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                if (rs.RecordCount != 1)
-                {
-                    return "Nog in te boeken";
-                }
-
-                decimal openAmount = 0m;
-                decimal paidAmount = 0m;
-
-                object v249Value = rs.Fields["v249"].Value;
-                if (!Convert.IsDBNull(v249Value))
-                {
-                    openAmount = Convert.ToDecimal(v249Value.ToString());
-                }
-
-                object v037Value = rs.Fields["v037"].Value;
-                if (!Convert.IsDBNull(v037Value))
-                {
-                    paidAmount = Convert.ToDecimal(v037Value.ToString());
-                }
-
-                if (openAmount - paidAmount == 0m)
-                {
-                    return "Volledig Betaald"; // Fully paid
-                }
-
-                if (paidAmount != 0m)
-                {
-                    return "Deels Betaald"; // Partially paid
-                }
-
-                return "Ingeboekt, nog te betalen"; // Not paid
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Error in GetBuyersBookStatusRS recordset.");
-                return "Nog in te boeken";
-            }
-            finally
-            {
-                if (rs != null)
-                {
-                    try
-                    {
-                        if (rs.State != 0)
-                        {
-                            rs.Close();
-                        }
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-                }
-            }
-        }
-        public bool SetBuyersBookStatusRS(
-            string sellerDocument,
-            string jsonToSave,
-            int asReceived)
-        {
-            string sSQL;
-
-            if (sellerDocument.Contains("|"))
-            {
-                string[] parts = sellerDocument.Split('|');
-                if (parts.Length == 3)
-                {
-                    string companyId = parts[0]; // companyId + "|" + documentId + "|" + paymentId;
-                    string documentId = parts[1];
-                    string paymentId = parts[2];
-
-                    if (companyId.StartsWith("BE"))
-                    {
-                        companyId = companyId.Substring(2); // Remove the first two characters
-                    }
-
-                    if (string.IsNullOrEmpty(paymentId))
-                    {
-                        paymentId = SanitizePaymentRef(documentId);
-                    }
-
-                    sSQL =
-                        "SELECT " +
-                        "Leveranciers.A110, Leveranciers.v404, " +
-                        "Dokumenten.v409, Dokumenten.v033, Dokumenten.v034, Dokumenten.v035, Dokumenten.v036, Dokumenten.v037, Dokumenten.v039, Dokumenten.v249 " +
-                        "FROM  Leveranciers, Dokumenten " +
-                        "WHERE Leveranciers.v404 = '" + companyId + "' " +
-                        "AND Dokumenten.v034 = 'L'+Leveranciers.A110 " +
-                        "AND Dokumenten.v409 = '" + documentId + "' " +
-                        "AND Dokumenten.v039 = '" + paymentId + "'";
-                }
-                else
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                sSQL =
-                    "SELECT v033, v037, v039, v249, v409 " +
-                    "FROM Dokumenten " +
-                    "WHERE v409 = '" + sellerDocument + "'";
-            }
-
-            string connectionString =
-                SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset rs = null;
-            bool updateSuccessful = false;
-            int maxRetries = 5;  
-            int retryCount = 0;
-            int delayMs = 150; // Increase from 100ms to max 2400ms for better handling of locks
-
-            while (retryCount < maxRetries)
-            {
-                try
-                {
-                    // 1) Resolve v033 for this buyer document
-                    rs = new Recordset
-                    {
-                        CursorLocation = CursorLocationEnum.adUseClient
-                    };
-
-                    rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                    if (rs.RecordCount != 1)
-                    {
-                        return false;
-                    }
-
-                    string marDocumentId = Convert.ToString(rs.Fields["v033"].Value);
-
-                    rs.Close();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    rs = null;
-
-                    // 2) Re-open for update by v033
-                    string sSQLUpdate = "SELECT * FROM Dokumenten WHERE v033 = '" + marDocumentId + "'";
-
-                    rs = new Recordset
-                    {
-                        CursorLocation = CursorLocationEnum.adUseClient
-                    };
-
-                    rs.Open(sSQLUpdate, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                    if (rs.RecordCount != 1)
-                    {
-                        return false;
-                    }
-
-                    string dbField;
-                    if (asReceived == 1)
-                    {
-                        dbField = "v408"; // responses JSON result
-                    }
-                    else if (asReceived == 0)
-                    {
-                        dbField = "v406"; // server received JSON result
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    rs.Fields[dbField].Value = jsonToSave;
-                    rs.Fields["dnnSync"].Value = "False";
-                    rs.Update();
-                    updateSuccessful = true;
-
-                    return true;
-                }
-                catch (System.Runtime.InteropServices.COMException comEx)
-                {
-                    // Check for lock-related exceptions (case-insensitive for robustness)
-                    if (comEx.Message.IndexOf("locked", StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        retryCount++;
-                        if (retryCount < maxRetries)
-                        {
-                            System.Threading.Thread.Sleep(delayMs);
-                            delayMs *= 2; // Exponential backoff
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                catch (Exception)
-                {
-                    if (updateSuccessful)
-                    {
-                        return true;
-                    }
-                    return false;
-                }
-                finally
-                {
-                    if (rs != null)
-                    {
-                        try
-                        {
-                            if (rs.State != 0)
-                            {
-                                rs.Close();
-                            }
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-
-                        try
-                        {
-                            System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                        finally
-                        {
-                            rs = null;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-        public bool SetDocumentResultRS(
-            string document,
-            string jsonResult,
-            int toComplete)
-        {
-            string sSQL = "SELECT * FROM Dokumenten WHERE v033 = '" + document.Substring(0, 11) + "'";
-            string connectionString = SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset rs = null;
-
-            try
-            {
-                rs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-
-                rs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                if (rs.RecordCount != 1)
-                {
-                    return false;
-                }
-
-                string dbField = "";
-                if (toComplete == 1)
-                {
-                    dbField = "v406"; // document sent JSON result
-                }
-                else if (toComplete == 0)
-                {
-                    dbField = "v405"; // server/client accepted JSON result
-                }
-                else if (toComplete == 2)
-                {
-                    dbField = "v408"; // responses JSON result
-                }
-
-                rs.Fields[dbField].Value = jsonResult;
-                rs.Fields["dnnSync"].Value = "False";
-                rs.Update();
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-            finally
-            {
-                if (rs != null)
-                {
-                    try
-                    {
-                        if (rs.State != 0)
-                        {
-                            rs.Close();
-                        }
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(rs);
-                    }
-                    catch
-                    {
-                        // ignore
-                    }
-                }
-            }
-        }
-        async public Task<int> RefreshSupportedDocumentsPartiesRS(bool isBuyer)
-        {
-            int numberUpdated = 0;
-            string sSQL;
-
-            if (isBuyer)
-            {
-                sSQL =
-                "SELECT Klanten.A110, Klanten.A100, Klanten.v404, Klanten.v150, Klanten.v407, Klanten.dnnSync " +
-                "FROM Klanten " +
-                "WHERE trim(Klanten.v150) = 'BE' AND len(trim(Klanten.v404)) = 10;";
-            } else
-            { 
-                sSQL =
-                "SELECT Leveranciers.A110, Leveranciers.A100, Leveranciers.v404, Leveranciers.v150, Leveranciers.v410, Leveranciers.dnnSync " +
-                "FROM Leveranciers " +
-                "WHERE trim(Leveranciers.v150) = 'BE' AND len(trim(Leveranciers.v404)) = 10;";
-            }
-
-            string connectionString =
-                SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
-
-            Recordset partiesRs = null;
-
-            try
-            {
-                partiesRs = new Recordset
-                {
-                    CursorLocation = CursorLocationEnum.adUseClient
-                };
-                partiesRs.Open(sSQL, connectionString, CursorTypeEnum.adOpenDynamic, LockTypeEnum.adLockOptimistic);
-
-                if (partiesRs.RecordCount <= 0)
-                {
-                    return 0;
-                }
-
-                int recordCount = partiesRs.RecordCount;
-
-                // Fill the DataGridView
-                DataGridViewNotifications.Rows.Clear();
-                DataGridViewNotifications.Columns.Clear();
-                DataGridViewNotifications.Columns.Add("A110", "Id");
-                DataGridViewNotifications.Columns.Add("v404", "KBO");
-                DataGridViewNotifications.Columns.Add("A100", "Name");
-                if (isBuyer)
-                {
-                    DataGridViewNotifications.Columns.Add("v407", "Ondersteund");
-                } else
-                {
-                    DataGridViewNotifications.Columns.Add("v410", "Ondersteund");
-                }
-
-                partiesRs.MoveFirst();
-                while (!partiesRs.EOF)
-                {
-                    if (isBuyer)
-                    {
-                        string id = Convert.ToString(partiesRs.Fields["A110"].Value).Trim();
-                        string kbo = Convert.ToString(partiesRs.Fields["v404"].Value).Trim();
-                        string name = Convert.ToString(partiesRs.Fields["A100"].Value).Trim();
-                        string supported = Convert.ToString(partiesRs.Fields["v407"].Value).Trim();
-                        DataGridViewNotifications.Rows.Add(id, kbo, name, supported);
-                    }
-                    else
-                    {
-                        string id = Convert.ToString(partiesRs.Fields["A110"].Value).Trim();
-                        string kbo = Convert.ToString(partiesRs.Fields["v404"].Value).Trim();
-                        string name = Convert.ToString(partiesRs.Fields["A100"].Value).Trim();
-                        string supported = Convert.ToString(partiesRs.Fields["v410"].Value).Trim();
-                        DataGridViewNotifications.Rows.Add(id, kbo, name, supported);
-                    }
-                    partiesRs.MoveNext();
-                }
-
-                DataGridViewNotifications.AutoResizeColumns();
-                DataGridViewNotifications.Visible = true;
-
-                // Now update supported documents
-                partiesRs.MoveFirst();
-                while (!partiesRs.EOF)
-                {
-                    if (isBuyer)
-                    {
-                        string customerId = Convert.ToString(partiesRs.Fields["A110"].Value).Trim();
-                        string customerName = Convert.ToString(partiesRs.Fields["A100"].Value).Trim();
-                        string customerKbo = Convert.ToString(partiesRs.Fields["v404"].Value).Trim();
-                        string customerCountry = Convert.ToString(partiesRs.Fields["v150"].Value).Trim();
-                        string supportedDocuments = Convert.ToString(partiesRs.Fields["v407"].Value).Trim();
-
-                        if (customerKbo.Length == 10)
-                        {
-                            string resultJson = await CheckPeppolSupportedDocuments(customerKbo);
-                            if (!string.IsNullOrEmpty(resultJson))
-                            {
-                                // string readable = BuildSupportedDocumentsReadableString(resultJson);
-                                string readable = resultJson;
-
-                                partiesRs.Fields["V407"].Value = readable;
-                                partiesRs.Fields["dnnSync"].Value = "False";    // Mark as to be synced
-                                partiesRs.Update();
-
-                                numberUpdated++;
-                                ToolStripStatusLabel.Text =
-                                    "Bezig... " + numberUpdated + " van " + recordCount + " - " + customerName;
-                                Application.DoEvents();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        string supplierId = Convert.ToString(partiesRs.Fields["A110"].Value).Trim();
-                        string supplierName = Convert.ToString(partiesRs.Fields["A100"].Value).Trim();
-                        string supplierKbo = Convert.ToString(partiesRs.Fields["v404"].Value).Trim();
-                        string supplierCountry = Convert.ToString(partiesRs.Fields["v150"].Value).Trim();
-                        string supportedDocuments = Convert.ToString(partiesRs.Fields["v410"].Value).Trim();
-                        if (supplierKbo.Length == 10)
-                        {
-                            string resultJson = await CheckPeppolSupportedDocuments(supplierKbo);
-                            if (!string.IsNullOrEmpty(resultJson))
-                            {
-                                // string readable = BuildSupportedDocumentsReadableString(resultJson);
-                                string readable = resultJson;
-
-                                partiesRs.Fields["V410"].Value = readable;
-                                partiesRs.Fields["dnnSync"].Value = "False";    // Mark as to be synced
-                                partiesRs.Update();
-                                numberUpdated++;
-                                ToolStripStatusLabel.Text =
-                                    "Bezig... " + numberUpdated + " van " + recordCount + " - " + supplierName;
-                                Application.DoEvents();
-                            }
-                        }
-                    }
-                    partiesRs.MoveNext();
-                }
-                return numberUpdated;
-            }
-            catch
-            {
-                return 0;
-            }
-            finally
-            {
-                if (partiesRs != null)
-                {
-                    try
-                    {
-                        if (partiesRs.State != 0)
-                        {
-                            partiesRs.Close();
-                        }
-                    }
-                    catch { /* ignore */ }
-
-                    try
-                    {
-                        System.Runtime.InteropServices.Marshal.ReleaseComObject(partiesRs);
-                    }
-                    catch { /* ignore */ }
-                }
-            }
-        }
-
-
         private void ButtonCleanUpNotifications_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Deze functionaliteit is momenteel nog niet beschikbaar.");
@@ -3406,6 +2692,710 @@ namespace MarSync.MarioMenu.Actions
             catch
             {
                 return companyId;
+            }
+        }
+
+        // OleDb Helper: Build connection string
+        private string GetOleDbConnectionString()
+        {
+            return SharedGlobals.DbJetProvider + SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation;
+        }
+
+        public string GetSellersDocumentSentResultRS(
+            string document,
+            bool checkAcceptedOrRejected)
+        {
+            try
+            {
+                string documentId = document.Substring(0, 11);
+                string connectionString = GetOleDbConnectionString();
+                string fieldToCheck = checkAcceptedOrRejected ? "v406" : "v405";
+                string fieldValue = string.Empty;
+
+                ADODB.Connection conn = new ADODB.Connection();
+                conn.Open(connectionString);
+
+                try
+                {
+                    // First query: Get the field value using ADODB
+                    string safeDocumentId = documentId.Replace("'", "''");
+                    string sSQL = $"SELECT v033, v405, v406, dnnSync FROM Dokumenten WHERE v033 = '{safeDocumentId}'";
+                    ADODB.Recordset rs = new ADODB.Recordset();
+                    rs.Open(sSQL, conn, ADODB.CursorTypeEnum.adOpenDynamic, ADODB.LockTypeEnum.adLockOptimistic);
+
+                    if (!rs.EOF)
+                    {
+                        object fieldObj = rs.Fields[fieldToCheck].Value;
+                        if (fieldObj != null && fieldObj != DBNull.Value)
+                        {
+                            fieldValue = fieldObj.ToString();
+
+                            // Clear transient/invalid states
+                            if (!string.IsNullOrEmpty(fieldValue) &&
+                                (fieldValue.Contains("VALIDATION_ERROR") || fieldValue.Contains("SCHEDULED")))
+                            {
+                                fieldValue = string.Empty;
+
+                                // Update the record to clear the field using Recordset.Update()
+                                try
+                                {
+                                    rs.Fields[fieldToCheck].Value = "";
+                                    rs.Fields["dnnSync"].Value = "False";
+                                    rs.Update();
+                                }
+                                catch
+                                {
+                                    // ignore update errors; just return empty
+                                }
+                            }
+                        }
+                    }
+                    rs.Close();
+                }
+                finally
+                {
+                    conn.Close();
+                }
+
+                return fieldValue;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in GetSellersDocumentSentResultRS: " + ex.Message);
+                throw;
+            }
+        }
+        public bool GetSellersPaidResultRS(string document)
+        {
+            try
+            {
+                string documentId = document.Substring(0, 11);
+                string connectionString = GetOleDbConnectionString();
+
+                using (OleDbConnection conn = new OleDbConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string sSQL = "SELECT v033, v037, v249 FROM Dokumenten WHERE v033 = @documentId";
+                    using (OleDbCommand cmd = new OleDbCommand(sSQL, conn))
+                    {
+                        // Explicitly set parameter type to VarChar to match database string field
+                        cmd.Parameters.Add("@documentId", OleDbType.VarChar).Value = documentId;
+                        using (OleDbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return false;
+                            }
+
+                            decimal openAmount = 0m;
+                            decimal paidAmount = 0m;
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v249")))
+                            {
+                                openAmount = Convert.ToDecimal(reader["v249"]);
+                            }
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v037")))
+                            {
+                                paidAmount = Convert.ToDecimal(reader["v037"]);
+                            }
+
+                            // Fully paid when remaining open amount is zero
+                            return openAmount - paidAmount == 0m;
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                Console.WriteLine("OleDbException in GetSellersPaidResultRS: " + ex.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in GetSellersPaidResultRS: " + ex.Message);
+                throw;
+            }
+        }
+        public string GetBuyersBookStatusRS(string sellerDocument)
+        {
+            try
+            {
+                string connectionString = GetOleDbConnectionString();
+                string sSQL;
+                OleDbCommand cmd = null;
+
+                // Build the appropriate query based on input format
+                if (sellerDocument.Contains("|"))
+                {
+                    string[] parts = sellerDocument.Split('|');
+                    if (parts.Length != 3)
+                    {
+                        return "Nog in te boeken";
+                    }
+
+                    string companyId = parts[0];
+                    string documentId = parts[1];
+                    string paymentId = parts[2];
+
+                    if (companyId.StartsWith("BE"))
+                    {
+                        companyId = companyId.Substring(2);
+                    }
+                    if (string.IsNullOrEmpty(paymentId))
+                    {
+                        paymentId = SanitizePaymentRef(documentId);
+                    }
+
+                    // Split into two queries to avoid computed field in JOIN
+                    // First get supplier ID
+                    string sSQLGetSupplier = "SELECT A110 FROM Leveranciers WHERE v404 = @companyId";
+                    string supplierId = null;
+
+                    using (OleDbConnection conn = new OleDbConnection(connectionString))
+                    {
+                        conn.Open();
+                        cmd = new OleDbCommand(sSQLGetSupplier, conn);
+                        cmd.Parameters.AddWithValue("@companyId", companyId);
+                        using (OleDbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return "Nog in te boeken";
+                            }
+                            supplierId = reader["A110"].ToString();
+                        }
+
+                        // Now query for document with the supplier ID
+                        string expectedDocRef = "L" + supplierId;
+                        sSQL = "SELECT Dokumenten.v037, Dokumenten.v039, Dokumenten.v249, Dokumenten.v409 " +
+                               "FROM Dokumenten " +
+                               "WHERE Dokumenten.v034 = @expectedDocRef " +
+                               "AND Dokumenten.v409 = @documentId " +
+                               "AND Dokumenten.v039 = @paymentId";
+
+                        cmd = new OleDbCommand(sSQL, conn);
+                        cmd.Parameters.AddWithValue("@expectedDocRef", expectedDocRef);
+                        cmd.Parameters.AddWithValue("@documentId", documentId);
+                        cmd.Parameters.AddWithValue("@paymentId", paymentId);
+
+                        using (OleDbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return "Nog in te boeken";
+                            }
+
+                            decimal openAmount = 0m;
+                            decimal paidAmount = 0m;
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v249")))
+                            {
+                                openAmount = Convert.ToDecimal(reader["v249"]);
+                            }
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v037")))
+                            {
+                                paidAmount = Convert.ToDecimal(reader["v037"]);
+                            }
+
+                            if (openAmount - paidAmount == 0m)
+                            {
+                                return "Volledig Betaald";
+                            }
+
+                            if (paidAmount != 0m)
+                            {
+                                return "Deels Betaald";
+                            }
+
+                            return "Ingeboekt, nog te betalen";
+                        }
+                    }
+                }
+                else
+                {
+                    sSQL = "SELECT v037, v039, v249, v409 FROM Dokumenten WHERE v409 = @sellerDocument";
+
+                    using (OleDbConnection conn = new OleDbConnection(connectionString))
+                    {
+                        conn.Open();
+                        cmd = new OleDbCommand(sSQL, conn);
+                        cmd.Parameters.AddWithValue("@sellerDocument", sellerDocument);
+
+                        using (OleDbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.Read())
+                            {
+                                return "Nog in te boeken";
+                            }
+
+                            decimal openAmount = 0m;
+                            decimal paidAmount = 0m;
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v249")))
+                            {
+                                openAmount = Convert.ToDecimal(reader["v249"]);
+                            }
+
+                            if (!reader.IsDBNull(reader.GetOrdinal("v037")))
+                            {
+                                paidAmount = Convert.ToDecimal(reader["v037"]);
+                            }
+
+                            if (openAmount - paidAmount == 0m)
+                            {
+                                return "Volledig Betaald";
+                            }
+
+                            if (paidAmount != 0m)
+                            {
+                                return "Deels Betaald";
+                            }
+
+                            return "Ingeboekt, nog te betalen";
+                        }
+                    }
+                }
+            }
+            catch (OleDbException ex)
+            {
+                Console.WriteLine("OleDbException in GetBuyersBookStatusRS: " + ex.Message);
+                return "Nog in te boeken";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in GetBuyersBookStatusRS: " + ex.Message);
+                return "Nog in te boeken";
+            }
+        }
+        public bool SetBuyersBookStatusRS(
+            string sellerDocument,
+            string jsonToSave,
+            int asReceived)
+        {
+            string connectionString = GetOleDbConnectionString();
+            int maxRetries = 5;
+            int retryCount = 0;
+            int delayMs = 150;
+
+            // Parse parameters first
+            string marDocumentId = null;
+            if (sellerDocument.Contains("|"))
+            {
+                string[] parts = sellerDocument.Split('|');
+                if (parts.Length != 3)
+                {
+                    return false;
+                }
+
+                string companyId = parts[0];
+                string documentId = parts[1];
+                string paymentId = parts[2];
+
+                if (companyId.StartsWith("BE"))
+                {
+                    companyId = companyId.Substring(2);
+                }
+
+                if (string.IsNullOrEmpty(paymentId))
+                {
+                    paymentId = SanitizePaymentRef(documentId);
+                }
+
+                // Query to resolve v033 - simplified without computed field in JOIN using ADODB
+                // First get the supplier ID from company ID
+                string sSQLGetSupplierId = $"SELECT A110 FROM Leveranciers WHERE v404 = '{companyId.Replace("'", "''")}'";
+
+                try
+                {
+                    ADODB.Connection conn = new ADODB.Connection();
+                    conn.Open(connectionString);
+
+                    try
+                    {
+                        // Get supplier ID first
+                        string supplierId = null;
+                        ADODB.Recordset rsSupplier = new ADODB.Recordset();
+                        rsSupplier.Open(sSQLGetSupplierId, conn, ADODB.CursorTypeEnum.adOpenStatic, ADODB.LockTypeEnum.adLockReadOnly);
+
+                        if (rsSupplier.EOF)
+                        {
+                            Console.WriteLine($"SetBuyersBookStatusRS: No supplier found for companyId={companyId}");
+                            rsSupplier.Close();
+                            return false;
+                        }
+                        supplierId = rsSupplier.Fields["A110"].Value.ToString();
+                        rsSupplier.Close();
+
+                        // Now query for the document using the supplier ID
+                        string expectedDocRef = "L" + supplierId;
+                        string safDocumentId = documentId.Replace("'", "''");
+                        string safePaymentId = paymentId.Replace("'", "''");
+                        string sSQLResolve = $"SELECT v033 FROM Dokumenten WHERE v034 = '{expectedDocRef.Replace("'", "''")}' AND v409 = '{safDocumentId}' AND v039 = '{safePaymentId}'";
+
+                        ADODB.Recordset rsDoc = new ADODB.Recordset();
+                        rsDoc.Open(sSQLResolve, conn, ADODB.CursorTypeEnum.adOpenStatic, ADODB.LockTypeEnum.adLockReadOnly);
+
+                        if (rsDoc.EOF)
+                        {
+                            Console.WriteLine($"SetBuyersBookStatusRS: No document found - supplierId={supplierId}, docRef={expectedDocRef}, documentId={documentId}, paymentId={paymentId}");
+                            rsDoc.Close();
+                            return false;
+                        }
+                        marDocumentId = rsDoc.Fields["v033"].Value.ToString();
+                        rsDoc.Close();
+                    }
+                    finally
+                    {
+                        conn.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception in SetBuyersBookStatusRS (resolve phase): {ex.Message}");
+                    return false;
+                }
+            }
+            else
+            {
+                // For simple document ID, just use it directly
+                marDocumentId = sellerDocument;
+            }
+
+            // Now retry the update with exponential backoff using ADODB
+            while (retryCount < maxRetries)
+            {
+                try
+                {
+                    string dbField;
+                    if (asReceived == 1)
+                    {
+                        dbField = "v408"; // responses JSON result
+                    }
+                    else if (asReceived == 0)
+                    {
+                        dbField = "v406"; // server received JSON result
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+                    ADODB.Connection conn = new ADODB.Connection();
+                    conn.Open(connectionString);
+
+                    try
+                    {
+                        // Use Recordset with Find() instead of WHERE clause to edit record directly
+                        string tableSQL = "SELECT * FROM Dokumenten";
+                        // Console.WriteLine($"SetBuyersBookStatusRS: Opening Dokumenten table for v033={marDocumentId}");
+                        ADODB.Recordset rs = new ADODB.Recordset();
+                        rs.Open(tableSQL, conn, ADODB.CursorTypeEnum.adOpenDynamic, ADODB.LockTypeEnum.adLockOptimistic);
+
+                        // Find the record by v033 value (string field - use quotes in criteria)
+                        rs.Find($"v033 = '{marDocumentId}'");
+
+                        if (rs.EOF)
+                        {
+                            Console.WriteLine($"SetBuyersBookStatusRS: Record not found for v033={marDocumentId}");
+                            rs.Close();
+                            return false;
+                        }
+
+                        // Update the record directly through Recordset
+                        // Console.WriteLine($"SetBuyersBookStatusRS: Updating record - dbField={dbField}, marDocumentId={marDocumentId}");
+                        rs.Fields[dbField].Value = jsonToSave;
+                        rs.Fields["dnnSync"].Value = "False";
+                        rs.Update();
+                        rs.Close();
+
+                        return true;
+                    }
+                    finally
+                    {
+                        conn.Close();
+                    }
+                }
+                catch (UnauthorizedAccessException ex) when (ex.Message.IndexOf("locked", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    retryCount++;
+                    if (retryCount < maxRetries)
+                    {
+                        System.Threading.Thread.Sleep(delayMs);
+                        delayMs *= 2; // Exponential backoff
+                    }
+                    else
+                    {
+                        Console.WriteLine($"SetBuyersBookStatusRS: Database locked after {maxRetries} attempts");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception in SetBuyersBookStatusRS (update phase):");
+                    Console.WriteLine($"  Type: {ex.GetType().Name}");
+                    Console.WriteLine($"  Message: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"  Inner Exception: {ex.InnerException.Message}");
+                    }
+                    return false;
+                }
+            }
+
+            return false;
+        }
+        public bool SetDocumentResultRS(
+            string document,
+            string jsonResult,
+            int toComplete)
+        {
+            try
+            {
+                string documentId = document.Substring(0, 11);
+                string connectionString = GetOleDbConnectionString();
+
+                string dbField = "";
+                if (toComplete == 1)
+                {
+                    dbField = "v406"; // document sent JSON result
+                }
+                else if (toComplete == 0)
+                {
+                    dbField = "v405"; // server/client accepted JSON result
+                }
+                else if (toComplete == 2)
+                {
+                    dbField = "v408"; // responses JSON result
+                }
+                else
+                {
+                    return false;
+                }
+
+                ADODB.Connection conn = new ADODB.Connection();
+                conn.Open(connectionString);
+
+                try
+                {
+                    // Use Recordset with Find() to edit record directly (v033 is a string field)
+                    string tableSQL = "SELECT * FROM Dokumenten";
+                    ADODB.Recordset rs = new ADODB.Recordset();
+                    rs.Open(tableSQL, conn, ADODB.CursorTypeEnum.adOpenDynamic, ADODB.LockTypeEnum.adLockOptimistic);
+
+                    // Find the record by v033 value (string field - use quotes in criteria)
+                    rs.Find($"v033 = '{documentId}'");
+
+                    if (rs.EOF)
+                    {
+                        rs.Close();
+                        return false;
+                    }
+
+                    // Update the record directly through Recordset
+                    rs.Fields[dbField].Value = jsonResult;
+                    rs.Fields["dnnSync"].Value = "False";
+                    rs.Update();
+                    rs.Close();
+
+                    return true;
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in SetDocumentResultRS: " + ex.Message);
+                return false;
+            }
+        }
+        async public Task<int> RefreshSupportedDocumentsPartiesRS(bool isBuyer)
+        {
+            int numberUpdated = 0;
+            string sSQL;
+            string tableName = isBuyer ? "Klanten" : "Leveranciers";
+            string supportedField = isBuyer ? "v407" : "v410";
+            int totalRecordsToProcess = 0;
+
+            if (isBuyer)
+            {
+                sSQL = "SELECT Klanten.A110, Klanten.A100, Klanten.v404, Klanten.v150, Klanten.v407, Klanten.dnnSync " +
+                       "FROM Klanten " +
+                       "WHERE trim(Klanten.v150) = 'BE' AND len(trim(Klanten.v404)) = 10;";
+            }
+            else
+            {
+                sSQL = "SELECT Leveranciers.A110, Leveranciers.A100, Leveranciers.v404, Leveranciers.v150, Leveranciers.v410, Leveranciers.dnnSync " +
+                       "FROM Leveranciers " +
+                       "WHERE trim(Leveranciers.v150) = 'BE' AND len(trim(Leveranciers.v404)) = 10;";
+            }
+
+            string connectionString = GetOleDbConnectionString();
+
+            try
+            {
+                using (OleDbConnection conn = new OleDbConnection(connectionString))
+                {
+                    conn.Open();
+                    using (OleDbCommand cmd = new OleDbCommand(sSQL, conn))
+                    {
+                        using (OleDbDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (!reader.HasRows)
+                            {
+                                return 0;
+                            }
+
+                            // First pass: fill DataGridView
+                            DataGridViewNotifications.Rows.Clear();
+                            DataGridViewNotifications.Columns.Clear();
+                            DataGridViewNotifications.Columns.Add("A110", "Id");
+                            DataGridViewNotifications.Columns.Add("v404", "KBO");
+                            DataGridViewNotifications.Columns.Add("A100", "Name");
+                            if (isBuyer)
+                            {
+                                DataGridViewNotifications.Columns.Add("v407", "Ondersteund");
+                            }
+                            else
+                            {
+                                DataGridViewNotifications.Columns.Add("v410", "Ondersteund");
+                            }
+
+                            while (reader.Read())
+                            {
+                                string id = reader["A110"].ToString().Trim();
+                                string kbo = reader["v404"].ToString().Trim();
+                                string name = reader["A100"].ToString().Trim();
+                                string supportedFieldLocal = isBuyer ? "v407" : "v410";
+                                string supported = reader[supportedFieldLocal].ToString().Trim();
+                                DataGridViewNotifications.Rows.Add(id, kbo, name, supported);
+                            }
+
+                            totalRecordsToProcess = DataGridViewNotifications.Rows.Count;
+                            DataGridViewNotifications.AutoResizeColumns();
+                            DataGridViewNotifications.Visible = true;
+                        }
+                    }
+
+                    conn.Close();
+                }
+
+                // Second pass: update supported documents using ADODB with single open Recordset
+                ADODB.Connection adoConn = new ADODB.Connection();
+                ADODB.Recordset rs = new ADODB.Recordset();
+                try
+                {
+                    adoConn.Open(connectionString, "", "", -1);
+
+                    // Open Recordset with the filtered records
+                    string filterSQL = isBuyer 
+                        ? "SELECT * FROM Klanten WHERE v150 = 'BE' AND len(v404) = 10"
+                        : "SELECT * FROM Leveranciers WHERE v150 = 'BE' AND len(v404) = 10";
+
+                    rs.Open(filterSQL, adoConn, ADODB.CursorTypeEnum.adOpenDynamic, ADODB.LockTypeEnum.adLockOptimistic);
+
+                    if (rs.EOF)
+                    {
+                        return 0;
+                    }
+
+                    rs.MoveFirst();
+
+                    // Iterate through existing records and update them
+                    while (!rs.EOF)
+                    {
+                        try
+                        {
+                            if (isBuyer)
+                            {
+                                string customerId = rs.Fields["A110"].Value.ToString().Trim();
+                                string customerName = rs.Fields["A100"].Value.ToString().Trim();
+                                string customerKbo = rs.Fields["v404"].Value.ToString().Trim();
+
+                                if (customerKbo.Length == 10)
+                                {
+                                    string resultJson = await CheckPeppolSupportedDocuments(customerKbo);
+                                    if (!string.IsNullOrEmpty(resultJson))
+                                    {
+                                        string readable = resultJson;
+
+                                        // Update current record directly
+                                        rs.Fields[supportedField].Value = readable;
+                                        rs.Fields["dnnSync"].Value = "False";
+                                        rs.Update();
+                                        numberUpdated++;
+
+                                        ToolStripStatusLabel.Text = $"Bezig... {numberUpdated} van {totalRecordsToProcess} - {customerName}";
+                                        Application.DoEvents();
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                string supplierId = rs.Fields["A110"].Value.ToString().Trim();
+                                string supplierName = rs.Fields["A100"].Value.ToString().Trim();
+                                string supplierKbo = rs.Fields["v404"].Value.ToString().Trim();
+
+                                if (supplierKbo.Length == 10)
+                                {
+                                    string resultJson = await CheckPeppolSupportedDocuments(supplierKbo);
+                                    if (!string.IsNullOrEmpty(resultJson))
+                                    {
+                                        string readable = resultJson;
+
+                                        // Update current record directly
+                                        rs.Fields[supportedField].Value = readable;
+                                        rs.Fields["dnnSync"].Value = "False";
+                                        rs.Update();
+                                        numberUpdated++;
+
+                                        ToolStripStatusLabel.Text = $"Bezig... {numberUpdated} van {totalRecordsToProcess} - {supplierName}";
+                                        Application.DoEvents();
+                                    }
+                                }
+                            }
+
+                            rs.MoveNext();
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error updating record: {ex.Message}");
+                            rs.MoveNext();
+                        }
+                    }
+                }
+                finally
+                {
+                    if (rs.State == 1) // adStateOpen
+                        rs.Close();
+                    if (adoConn.State == 1) // adStateOpen
+                        adoConn.Close();
+                }
+
+                return numberUpdated;
+            }
+            catch (OleDbException ex)
+            {
+                Console.WriteLine("OleDbException in RefreshSupportedDocumentsPartiesRS: " + ex.Message);
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error in RefreshSupportedDocumentsPartiesRS: " + ex.Message);
+                return 0;
+            }
+        }
+
+        private void ButtonGetDocument_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(TextBoxTransmissionId.Text) || TextBoxTransmissionId.Text.Length != 32)
+            {
+                MessageBox.Show("Breng het transmissie ID van een document in bestaande uit 32 tekens.", "Invoer vereist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
         }
     }

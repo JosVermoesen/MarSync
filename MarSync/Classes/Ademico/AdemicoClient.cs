@@ -152,7 +152,6 @@ namespace MarSync
 
             int requestCounter = SharedGlobals.RequestCounter + 1;
             SharedGlobals.RequestCounter = requestCounter;
-            Console.WriteLine(SharedGlobals.RequestCounter);
 
             var fullUrl = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/notifications";
             if (queryParams.Count > 0)
@@ -175,34 +174,87 @@ namespace MarSync
                     {
                         using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
                         {
-                            if (response.StatusCode == (HttpStatusCode)429) // Too Many Requests
+                            // Success path
+                            if (response.IsSuccessStatusCode)
                             {
-                                // Read Retry-After header (seconds)
-                                double retryAfterSeconds = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 5;
-                                if (attempt >= maxRetries)
-                                {
-                                    Console.WriteLine("Max retry attempts reached.");
-
-
-                                    return "{\"error\": \"Too many requests. Please try again later.\", \"retryAfterSeconds\": " + retryAfterSeconds + "}";
-                                }
-                                await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds), cancellationToken);
-                                continue; // Retry
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
+                                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                             }
 
-                            response.EnsureSuccessStatusCode();
-                            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            // Rate limit (429)
+                            if (response.StatusCode == (HttpStatusCode)429)
+                            {
+                                double retryAfterSeconds = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 5;
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
+
+                                if (attempt >= maxRetries)
+                                {
+                                    string errorMsg = $"API rate limit exceeded after {maxRetries} attempts. Server requested {retryAfterSeconds}s backoff.";
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 429, \"retryAfterSeconds\": " + retryAfterSeconds + "}";
+                                }
+
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
+                                await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds), cancellationToken);
+                                continue;
+                            }
+
+                            // Service unavailable (503)
+                            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                            {
+                                string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
+
+                                if (attempt >= maxRetries)
+                                {
+                                    string errorMsg = "Ademico API service temporarily unavailable (HTTP 503). Please try again later.";
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 503}";
+                                }
+
+                                int delaySeconds = Math.Min(5 * attempt, 30);
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {delaySeconds}s delay...");
+                                await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+                                continue;
+                            }
+
+                            // Other non-success status
+                            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {responseBody}");
+
+                            string errorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
+                            if (!string.IsNullOrWhiteSpace(responseBody))
+                            {
+                                errorMessage += " - " + responseBody;
+                            }
+                            return "{\"error\": \"" + errorMessage + "\", \"statusCode\": " + (int)response.StatusCode + "}";
                         }
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine("HttpRequestException: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
                         return "{\"error\": \"HttpRequestException: " + ex.Message + "\"}";
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return "{\"error\": \"Request cancelled: " + ex.Message + "\"}";
                     }
                     catch (Exception ex)
                     {
-                        return "{\"error\": \"Exception: " + ex.Message + "\"}";
-                    }
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return "{\"error\": \"" + ex.GetType().Name + ": " + ex.Message + "\"}";
+                    }                    
                 }
             }
         }

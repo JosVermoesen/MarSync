@@ -110,7 +110,7 @@ namespace MarSync
                     _ = MessageBox.Show("File at path: " + filePath);
 
                     SharedGlobals.MdvSettings2025 = tbMarLocatie.Text;
-                    Properties.Settings.Default.MdvSetting2025 = SharedGlobals.MdvSettings2025;
+                    Properties.Settings.Default.MdvSetting2027 = SharedGlobals.MdvSettings2025;
                     Properties.Settings.Default.Save();
                 }
             }
@@ -299,14 +299,14 @@ namespace MarSync
         private void BtnCheckLocalSqlServer_Click(object sender, EventArgs e)
         {
             SharedGlobals.LocalSQLSetting2025 = tbLocalConnectionstring.Text;            
-            Properties.Settings.Default.LocalSQLSetting2025 = SharedGlobals.LocalSQLSetting2025;            
+            Properties.Settings.Default.LocalSQLSetting2027 = SharedGlobals.LocalSQLSetting2025;            
             Properties.Settings.Default.Save();
         }
 
         private void BtnCheckHostedSqlServer_Click(object sender, EventArgs e)
         {
             SharedGlobals.HostedSQLSetting2025 = tbHostedConnectionstring.Text;
-            Properties.Settings.Default.HostedSQLSetting2025 = SharedGlobals.HostedSQLSetting2025;
+            Properties.Settings.Default.HostedSQLSetting2027 = SharedGlobals.HostedSQLSetting2025;
             Properties.Settings.Default.Save();
         }
 

@@ -50,7 +50,7 @@ namespace MarSync.MarioMenu.Admin
             if (RadioButtonTestMode.Checked)
             {                
                 MarHelpers.SetApiMode("TESTMODE");
-                Properties.Settings.Default.PeppolTestMode = true;
+                Properties.Settings.Default.PeppolTestMode2027 = true;
                 Properties.Settings.Default.Save();
                 // Application.Restart();
             }
@@ -61,7 +61,7 @@ namespace MarSync.MarioMenu.Admin
             if (RadioButtonProductionMode.Checked)
             {                
                 MarHelpers.SetApiMode("PRODUCTIE");
-                Properties.Settings.Default.PeppolTestMode = false;
+                Properties.Settings.Default.PeppolTestMode2027 = false;
                 Properties.Settings.Default.Save();
                 // Application.Restart();
             }

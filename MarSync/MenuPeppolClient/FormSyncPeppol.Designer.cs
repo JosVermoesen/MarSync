@@ -31,6 +31,9 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormSyncPeppol));
             this.TabControlVariousActions = new System.Windows.Forms.TabControl();
             this.TabMonitor = new System.Windows.Forms.TabPage();
+            this.ButtonGetDocument = new System.Windows.Forms.Button();
+            this.TextBoxTransmissionId = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.ButtonMyStatusReport = new System.Windows.Forms.Button();
             this.ComboBoxBuyerOrSeller = new System.Windows.Forms.ComboBox();
             this.PanelReporting = new System.Windows.Forms.Panel();
@@ -57,6 +60,7 @@
             this.ButtonTimer = new System.Windows.Forms.Button();
             this.TabReceiveDocument = new System.Windows.Forms.TabPage();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.LabelForReactions = new System.Windows.Forms.Label();
             this.ListBoxDocumentsIn = new System.Windows.Forms.ListBox();
             this.LabelFileIn = new System.Windows.Forms.Label();
             this.ButtonOpenXmlMapIn = new System.Windows.Forms.Button();
@@ -105,7 +109,6 @@
             this.ButtonClose = new System.Windows.Forms.Button();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.LabelForReactions = new System.Windows.Forms.Label();
             this.TabControlVariousActions.SuspendLayout();
             this.TabMonitor.SuspendLayout();
             this.PanelReporting.SuspendLayout();
@@ -132,13 +135,16 @@
             this.TabControlVariousActions.Location = new System.Drawing.Point(0, 0);
             this.TabControlVariousActions.Name = "TabControlVariousActions";
             this.TabControlVariousActions.SelectedIndex = 0;
-            this.TabControlVariousActions.Size = new System.Drawing.Size(401, 458);
+            this.TabControlVariousActions.Size = new System.Drawing.Size(401, 517);
             this.TabControlVariousActions.TabIndex = 0;
             this.TabControlVariousActions.SelectedIndexChanged += new System.EventHandler(this.TabControlVariousActions_SelectedIndexChanged);
             // 
             // TabMonitor
             // 
             this.TabMonitor.BackColor = System.Drawing.Color.Transparent;
+            this.TabMonitor.Controls.Add(this.ButtonGetDocument);
+            this.TabMonitor.Controls.Add(this.TextBoxTransmissionId);
+            this.TabMonitor.Controls.Add(this.label1);
             this.TabMonitor.Controls.Add(this.ButtonMyStatusReport);
             this.TabMonitor.Controls.Add(this.ComboBoxBuyerOrSeller);
             this.TabMonitor.Controls.Add(this.PanelReporting);
@@ -162,15 +168,47 @@
             this.TabMonitor.Controls.Add(this.ButtonTimer);
             this.TabMonitor.Location = new System.Drawing.Point(4, 22);
             this.TabMonitor.Name = "TabMonitor";
-            this.TabMonitor.Size = new System.Drawing.Size(393, 432);
+            this.TabMonitor.Size = new System.Drawing.Size(393, 491);
             this.TabMonitor.TabIndex = 5;
             this.TabMonitor.Text = "Monitor";
+            // 
+            // ButtonGetDocument
+            // 
+            this.ButtonGetDocument.Location = new System.Drawing.Point(239, 311);
+            this.ButtonGetDocument.Name = "ButtonGetDocument";
+            this.ButtonGetDocument.Size = new System.Drawing.Size(142, 26);
+            this.ButtonGetDocument.TabIndex = 64;
+            this.ButtonGetDocument.Text = "Document via ID Ophalen";
+            this.ButtonGetDocument.UseVisualStyleBackColor = true;
+            this.ButtonGetDocument.Visible = false;
+            this.ButtonGetDocument.Click += new System.EventHandler(this.ButtonGetDocument_Click);
+            // 
+            // TextBoxTransmissionId
+            // 
+            this.TextBoxTransmissionId.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.TextBoxTransmissionId.Location = new System.Drawing.Point(13, 343);
+            this.TextBoxTransmissionId.Name = "TextBoxTransmissionId";
+            this.TextBoxTransmissionId.Size = new System.Drawing.Size(365, 26);
+            this.TextBoxTransmissionId.TabIndex = 63;
+            this.TextBoxTransmissionId.Visible = false;
+            // 
+            // label1
+            // 
+            this.label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(13, 313);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(217, 27);
+            this.label1.TabIndex = 61;
+            this.label1.Text = "Diversen Manueel";
+            this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.label1.Visible = false;
             // 
             // ButtonMyStatusReport
             // 
             this.ButtonMyStatusReport.Enabled = false;
             this.ButtonMyStatusReport.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonMyStatusReport.Location = new System.Drawing.Point(121, 314);
+            this.ButtonMyStatusReport.Location = new System.Drawing.Point(121, 375);
             this.ButtonMyStatusReport.Name = "ButtonMyStatusReport";
             this.ButtonMyStatusReport.Size = new System.Drawing.Size(109, 89);
             this.ButtonMyStatusReport.TabIndex = 60;
@@ -185,7 +223,7 @@
             this.ComboBoxBuyerOrSeller.Items.AddRange(new object[] {
             "BE Klanten (B2B)",
             "BE Leveranciers"});
-            this.ComboBoxBuyerOrSeller.Location = new System.Drawing.Point(243, 382);
+            this.ComboBoxBuyerOrSeller.Location = new System.Drawing.Point(243, 443);
             this.ComboBoxBuyerOrSeller.Name = "ComboBoxBuyerOrSeller";
             this.ComboBoxBuyerOrSeller.Size = new System.Drawing.Size(139, 21);
             this.ComboBoxBuyerOrSeller.TabIndex = 59;
@@ -292,7 +330,7 @@
             // 
             this.ButtonUpdateBEPartiesSupported.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ButtonUpdateBEPartiesSupported.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonUpdateBEPartiesSupported.Location = new System.Drawing.Point(243, 314);
+            this.ButtonUpdateBEPartiesSupported.Location = new System.Drawing.Point(243, 375);
             this.ButtonUpdateBEPartiesSupported.Name = "ButtonUpdateBEPartiesSupported";
             this.ButtonUpdateBEPartiesSupported.Size = new System.Drawing.Size(139, 62);
             this.ButtonUpdateBEPartiesSupported.TabIndex = 33;
@@ -416,7 +454,7 @@
             this.ButtonTimer.BackColor = System.Drawing.Color.Azure;
             this.ButtonTimer.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.ButtonTimer.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonTimer.Location = new System.Drawing.Point(13, 314);
+            this.ButtonTimer.Location = new System.Drawing.Point(13, 375);
             this.ButtonTimer.Name = "ButtonTimer";
             this.ButtonTimer.Size = new System.Drawing.Size(102, 91);
             this.ButtonTimer.TabIndex = 11;
@@ -431,7 +469,7 @@
             this.TabReceiveDocument.Controls.Add(this.LabelResponseCode);
             this.TabReceiveDocument.Location = new System.Drawing.Point(4, 22);
             this.TabReceiveDocument.Name = "TabReceiveDocument";
-            this.TabReceiveDocument.Size = new System.Drawing.Size(393, 432);
+            this.TabReceiveDocument.Size = new System.Drawing.Size(393, 491);
             this.TabReceiveDocument.TabIndex = 3;
             this.TabReceiveDocument.Text = "Ontvangen";
             this.TabReceiveDocument.UseVisualStyleBackColor = true;
@@ -449,6 +487,18 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(393, 231);
             this.panel2.TabIndex = 18;
+            // 
+            // LabelForReactions
+            // 
+            this.LabelForReactions.BackColor = System.Drawing.Color.SeaShell;
+            this.LabelForReactions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.LabelForReactions.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.LabelForReactions.Location = new System.Drawing.Point(23, 134);
+            this.LabelForReactions.Name = "LabelForReactions";
+            this.LabelForReactions.Size = new System.Drawing.Size(346, 89);
+            this.LabelForReactions.TabIndex = 27;
+            this.LabelForReactions.Text = "Kies eerst [Vernieuwen] om \'Reacties\' op een ontvangen documenten mogelijk te mak" +
+    "en";
             // 
             // ListBoxDocumentsIn
             // 
@@ -509,7 +559,7 @@
             this.PanelReactions.Controls.Add(this.LabelClarification);
             this.PanelReactions.Controls.Add(this.TextBoxNote);
             this.PanelReactions.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.PanelReactions.Location = new System.Drawing.Point(0, 248);
+            this.PanelReactions.Location = new System.Drawing.Point(0, 307);
             this.PanelReactions.Name = "PanelReactions";
             this.PanelReactions.Size = new System.Drawing.Size(393, 184);
             this.PanelReactions.TabIndex = 11;
@@ -618,7 +668,7 @@
             this.TabSendDocument.Controls.Add(this.ButtonCheckFileOut);
             this.TabSendDocument.Location = new System.Drawing.Point(4, 22);
             this.TabSendDocument.Name = "TabSendDocument";
-            this.TabSendDocument.Size = new System.Drawing.Size(393, 432);
+            this.TabSendDocument.Size = new System.Drawing.Size(393, 491);
             this.TabSendDocument.TabIndex = 2;
             this.TabSendDocument.Text = "Verzonden";
             this.TabSendDocument.UseVisualStyleBackColor = true;
@@ -658,7 +708,7 @@
             // 
             this.ListBoxDocumentsOut.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ListBoxDocumentsOut.FormattingEnabled = true;
-            this.ListBoxDocumentsOut.Location = new System.Drawing.Point(0, 64);
+            this.ListBoxDocumentsOut.Location = new System.Drawing.Point(0, 123);
             this.ListBoxDocumentsOut.Name = "ListBoxDocumentsOut";
             this.ListBoxDocumentsOut.Size = new System.Drawing.Size(393, 368);
             this.ListBoxDocumentsOut.TabIndex = 6;
@@ -704,7 +754,7 @@
             this.TabNotifications.Location = new System.Drawing.Point(4, 22);
             this.TabNotifications.Name = "TabNotifications";
             this.TabNotifications.Padding = new System.Windows.Forms.Padding(3);
-            this.TabNotifications.Size = new System.Drawing.Size(393, 432);
+            this.TabNotifications.Size = new System.Drawing.Size(393, 491);
             this.TabNotifications.TabIndex = 1;
             this.TabNotifications.Text = "Meldingen";
             this.TabNotifications.UseVisualStyleBackColor = true;
@@ -825,7 +875,7 @@
             this.DataGridViewNotifications.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.ColumnHeader;
             this.DataGridViewNotifications.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DataGridViewNotifications.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.DataGridViewNotifications.Location = new System.Drawing.Point(3, 220);
+            this.DataGridViewNotifications.Location = new System.Drawing.Point(3, 279);
             this.DataGridViewNotifications.Name = "DataGridViewNotifications";
             this.DataGridViewNotifications.ReadOnly = true;
             this.DataGridViewNotifications.Size = new System.Drawing.Size(387, 209);
@@ -865,7 +915,7 @@
             this.TabResponse.Controls.Add(this.RichTextBoxResponses);
             this.TabResponse.Location = new System.Drawing.Point(4, 22);
             this.TabResponse.Name = "TabResponse";
-            this.TabResponse.Size = new System.Drawing.Size(393, 432);
+            this.TabResponse.Size = new System.Drawing.Size(393, 491);
             this.TabResponse.TabIndex = 4;
             this.TabResponse.Text = "Reacties/Antwoorden";
             this.TabResponse.UseVisualStyleBackColor = true;
@@ -875,7 +925,7 @@
             this.RichTextBoxResponses.Dock = System.Windows.Forms.DockStyle.Fill;
             this.RichTextBoxResponses.Location = new System.Drawing.Point(0, 0);
             this.RichTextBoxResponses.Name = "RichTextBoxResponses";
-            this.RichTextBoxResponses.Size = new System.Drawing.Size(393, 432);
+            this.RichTextBoxResponses.Size = new System.Drawing.Size(393, 491);
             this.RichTextBoxResponses.TabIndex = 1;
             this.RichTextBoxResponses.Text = "";
             // 
@@ -886,7 +936,7 @@
             this.TabConsultArchive.Controls.Add(this.LabelTransmissionId);
             this.TabConsultArchive.Location = new System.Drawing.Point(4, 22);
             this.TabConsultArchive.Name = "TabConsultArchive";
-            this.TabConsultArchive.Size = new System.Drawing.Size(393, 432);
+            this.TabConsultArchive.Size = new System.Drawing.Size(393, 491);
             this.TabConsultArchive.TabIndex = 6;
             this.TabConsultArchive.Text = "Archief Consulteren";
             this.TabConsultArchive.UseVisualStyleBackColor = true;
@@ -936,7 +986,7 @@
             // 
             this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ToolStripStatusLabel});
-            this.StatusStrip.Location = new System.Drawing.Point(0, 436);
+            this.StatusStrip.Location = new System.Drawing.Point(0, 495);
             this.StatusStrip.Name = "StatusStrip";
             this.StatusStrip.Size = new System.Drawing.Size(401, 22);
             this.StatusStrip.TabIndex = 10;
@@ -948,23 +998,12 @@
             this.ToolStripStatusLabel.Size = new System.Drawing.Size(33, 17);
             this.ToolStripStatusLabel.Text = "Klaar";
             // 
-            // LabelForReactions
-            // 
-            this.LabelForReactions.BackColor = System.Drawing.Color.SeaShell;
-            this.LabelForReactions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.LabelForReactions.Font = new System.Drawing.Font("Microsoft Sans Serif", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LabelForReactions.Location = new System.Drawing.Point(23, 134);
-            this.LabelForReactions.Name = "LabelForReactions";
-            this.LabelForReactions.Size = new System.Drawing.Size(346, 89);
-            this.LabelForReactions.TabIndex = 27;
-            this.LabelForReactions.Text = "Kies [Status Vernieuwen] om \'Reacties\' aankoopdocumenten mogelijk te maken.";
-            // 
             // FormSyncPeppol
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.ButtonClose;
-            this.ClientSize = new System.Drawing.Size(401, 458);
+            this.ClientSize = new System.Drawing.Size(401, 517);
             this.ControlBox = false;
             this.Controls.Add(this.StatusStrip);
             this.Controls.Add(this.TabControlVariousActions);
@@ -1081,5 +1120,8 @@
         private System.Windows.Forms.ComboBox ComboBoxBuyerOrSeller;
         private System.Windows.Forms.Button ButtonMyStatusReport;
         private System.Windows.Forms.Label LabelForReactions;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button ButtonGetDocument;
+        private System.Windows.Forms.TextBox TextBoxTransmissionId;
     }
 }

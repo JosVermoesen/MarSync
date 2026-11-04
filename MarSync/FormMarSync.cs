@@ -62,35 +62,35 @@ namespace MarSync
                 this.Height = Properties.Settings.Default.MainHeight;
             }
 
-            if (Properties.Settings.Default.TestGuidToControl == MyApiSecrets.guidTestAccess)
+            if (Properties.Settings.Default.TestGuidToControl2027 == MyApiSecrets.guidTestAccess)
             {
-                SharedGlobals.UserTestGuid = Properties.Settings.Default.TestGuidToControl;
+                SharedGlobals.UserTestGuid = Properties.Settings.Default.TestGuidToControl2027;
             }
             else
             {
                 SharedGlobals.UserTestGuid = "";
-                Properties.Settings.Default.TestGuidToControl = SharedGlobals.UserTestGuid;
+                Properties.Settings.Default.TestGuidToControl2027 = SharedGlobals.UserTestGuid;
                 Properties.Settings.Default.Save();
             }
 
-            if (Properties.Settings.Default.ProdGuidToControl == MyApiSecrets.guidProdAccess)
+            if (Properties.Settings.Default.ProdGuidToControl2027 == MyApiSecrets.guidProdAccess)
             {
-                SharedGlobals.UserProdGuid = Properties.Settings.Default.ProdGuidToControl;
+                SharedGlobals.UserProdGuid = Properties.Settings.Default.ProdGuidToControl2027;
             }
             else
             {
                 SharedGlobals.UserProdGuid = "";
-                Properties.Settings.Default.ProdGuidToControl = SharedGlobals.UserProdGuid;
+                Properties.Settings.Default.ProdGuidToControl2027 = SharedGlobals.UserProdGuid;
                 Properties.Settings.Default.Save();
             }
 
-            SharedGlobals.UserCanToggleTabs = Properties.Settings.Default.UserCanToggleTabs;
+            SharedGlobals.UserCanToggleTabs = Properties.Settings.Default.UserCanToggleTabs2027;
 
-            SharedGlobals.MdvSettings2025 = Properties.Settings.Default.MdvSetting2025;
-            SharedGlobals.LocalSQLSetting2025 = Properties.Settings.Default.LocalSQLSetting2025;
-            SharedGlobals.HostedSQLSetting2025 = Properties.Settings.Default.HostedSQLSetting2025;
+            SharedGlobals.MdvSettings2025 = Properties.Settings.Default.MdvSetting2027;
+            SharedGlobals.LocalSQLSetting2025 = Properties.Settings.Default.LocalSQLSetting2027;
+            SharedGlobals.HostedSQLSetting2025 = Properties.Settings.Default.HostedSQLSetting2027;
 
-            bool apiMode = Properties.Settings.Default.PeppolTestMode;
+            bool apiMode = Properties.Settings.Default.PeppolTestMode2027;
 
             if (apiMode)
             {
@@ -114,9 +114,9 @@ namespace MarSync
             Properties.Settings.Default.MainWidth = this.Width;
             Properties.Settings.Default.MainHeight = this.Height;
 
-            Properties.Settings.Default.MdvSetting2025 = SharedGlobals.MdvSettings2025;
-            Properties.Settings.Default.LocalSQLSetting2025 = SharedGlobals.LocalSQLSetting2025;
-            Properties.Settings.Default.HostedSQLSetting2025 = SharedGlobals.HostedSQLSetting2025;
+            Properties.Settings.Default.MdvSetting2027 = SharedGlobals.MdvSettings2025;
+            Properties.Settings.Default.LocalSQLSetting2027 = SharedGlobals.LocalSQLSetting2025;
+            Properties.Settings.Default.HostedSQLSetting2027 = SharedGlobals.HostedSQLSetting2025;
             Properties.Settings.Default.Save();
         }
 
@@ -165,7 +165,7 @@ namespace MarSync
 
         private void FormMario_Shown(object sender, EventArgs e)
         {
-            bool isAdmin = Properties.Settings.Default.IsAdmin;
+            bool isAdmin = Properties.Settings.Default.IsAdmin2030;
             AdminMenuItem.Visible = isAdmin; // Show or hide the Admin menu based on the IsAdmin setting             
 
             // Load MimDataLocation from marIntegraal settings
@@ -529,6 +529,12 @@ namespace MarSync
             form.ShowDialog();
             
             // Show();
+        }
+
+        private void MenuItemPeppolClientSettings_Click(object sender, EventArgs e)
+        {
+            var form = new FormPeppolClientSettings();
+            form.ShowDialog(this);
         }
     }
 }

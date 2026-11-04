@@ -15,7 +15,7 @@
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <PublishUrl>C:\Users\Jos\source\repos\mar\vss\Peppol\MarSync\publish\</PublishUrl>
+    <PublishUrl>C:\Users\Jos\source\repos\mar\vss\marSync\MarSync\publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -31,8 +31,8 @@
     <PublisherName>Vsoft Administratieve Software</PublisherName>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>2</ApplicationRevision>
-    <ApplicationVersion>3.0.3.%2a</ApplicationVersion>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>4.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <CreateDesktopShortcut>true</CreateDesktopShortcut>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -196,6 +196,12 @@
     <Compile Include="MenuPeppolClient\FormPeppolArchiveExplorer.Designer.cs">
       <DependentUpon>FormPeppolArchiveExplorer.cs</DependentUpon>
     </Compile>
+    <Compile Include="MenuPeppolClient\FormPeppolClientSettings.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MenuPeppolClient\FormPeppolClientSettings.Designer.cs">
+      <DependentUpon>FormPeppolClientSettings.cs</DependentUpon>
+    </Compile>
     <Compile Include="SharedForms\FormCheckDocument.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -283,6 +289,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="MenuPeppolClient\FormPeppolArchiveExplorer.resx">
       <DependentUpon>FormPeppolArchiveExplorer.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MenuPeppolClient\FormPeppolClientSettings.resx">
+      <DependentUpon>FormPeppolClientSettings.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SharedForms\FormCheckDocument.resx">
       <DependentUpon>FormCheckDocument.cs</DependentUpon>

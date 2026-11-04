@@ -12,7 +12,7 @@ namespace MarSync.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.14.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "18.10.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,48 +26,48 @@ namespace MarSync.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string MdvSetting2025 {
+        public string MdvSetting2027 {
             get {
-                return ((string)(this["MdvSetting2025"]));
+                return ((string)(this["MdvSetting2027"]));
             }
             set {
-                this["MdvSetting2025"] = value;
+                this["MdvSetting2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LocalSQLSetting2025 {
+        public string LocalSQLSetting2027 {
             get {
-                return ((string)(this["LocalSQLSetting2025"]));
+                return ((string)(this["LocalSQLSetting2027"]));
             }
             set {
-                this["LocalSQLSetting2025"] = value;
+                this["LocalSQLSetting2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string HostedSQLSetting2025 {
+        public string HostedSQLSetting2027 {
             get {
-                return ((string)(this["HostedSQLSetting2025"]));
+                return ((string)(this["HostedSQLSetting2027"]));
             }
             set {
-                this["HostedSQLSetting2025"] = value;
+                this["HostedSQLSetting2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string PathSPSetting2025 {
+        public string PathSPSetting2027 {
             get {
-                return ((string)(this["PathSPSetting2025"]));
+                return ((string)(this["PathSPSetting2027"]));
             }
             set {
-                this["PathSPSetting2025"] = value;
+                this["PathSPSetting2027"] = value;
             }
         }
         
@@ -146,60 +146,60 @@ namespace MarSync.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool IsAdmin {
+        public bool IsAdmin2030 {
             get {
-                return ((bool)(this["IsAdmin"]));
+                return ((bool)(this["IsAdmin2030"]));
             }
             set {
-                this["IsAdmin"] = value;
+                this["IsAdmin2030"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string TestGuidToControl {
+        public string TestGuidToControl2027 {
             get {
-                return ((string)(this["TestGuidToControl"]));
+                return ((string)(this["TestGuidToControl2027"]));
             }
             set {
-                this["TestGuidToControl"] = value;
+                this["TestGuidToControl2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ProdGuidToControl {
+        public string ProdGuidToControl2027 {
             get {
-                return ((string)(this["ProdGuidToControl"]));
+                return ((string)(this["ProdGuidToControl2027"]));
             }
             set {
-                this["ProdGuidToControl"] = value;
+                this["ProdGuidToControl2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool PeppolTestMode {
+        public bool PeppolTestMode2027 {
             get {
-                return ((bool)(this["PeppolTestMode"]));
+                return ((bool)(this["PeppolTestMode2027"]));
             }
             set {
-                this["PeppolTestMode"] = value;
+                this["PeppolTestMode2027"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool UserCanToggleTabs {
+        public bool UserCanToggleTabs2027 {
             get {
-                return ((bool)(this["UserCanToggleTabs"]));
+                return ((bool)(this["UserCanToggleTabs2027"]));
             }
             set {
-                this["UserCanToggleTabs"] = value;
+                this["UserCanToggleTabs2027"] = value;
             }
         }
         
