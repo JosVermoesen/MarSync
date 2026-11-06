@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.OleDb;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -2636,63 +2637,93 @@ namespace MarSync.MarioMenu.Actions
 
         private async Task<string> ViesLookUpName(string companyId)
         {
-            if (string.IsNullOrWhiteSpace(companyId))
-                return companyId;
-
             string countryCode;
             string vatNumberEU;
 
-            if (companyId.Length > 5 && companyId.Substring(0, 5) == "0208:")
+            if (companyId.Substring(0, 5) == "0208:")
             {
                 countryCode = "BE";
                 vatNumberEU = countryCode + companyId.Substring(5);
             }
-            else if (companyId.Length > 5 && companyId.Substring(0, 5) == "9925:")
+            else if (companyId.Substring(0, 5) == "9925:")
             {
                 countryCode = "BE";
                 vatNumberEU = companyId.Substring(5);
             }
-            else if (companyId.Length > 2)
+            else
             {
                 countryCode = companyId.Substring(0, 2);
                 vatNumberEU = companyId.Substring(2);
-            }
-            else
-            {
-                return companyId;
             }
 
             string url = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/" + countryCode + "/vat/" + vatNumberEU;
 
             try
             {
-                using (var httpClient = new HttpClient())
+                HttpResponseMessage response = await httpCheck.GetAsync(url); // Use the HttpClient instance
+                response.EnsureSuccessStatusCode(); // Throws if not successful
+                string responseContent = await response.Content.ReadAsStringAsync();
+
+                // Work around HTML or non‑JSON error pages (e.g. "Server temporarily unavailable")
+                if (string.IsNullOrWhiteSpace(responseContent))
                 {
-                    httpClient.Timeout = TimeSpan.FromSeconds(5);
-                    HttpResponseMessage response = await httpClient.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-                    string responseContent = await response.Content.ReadAsStringAsync();
-
-                    if (string.IsNullOrWhiteSpace(responseContent))
-                        return companyId;
-
-                    char firstNonWs = responseContent.SkipWhile(char.IsWhiteSpace).FirstOrDefault();
-                    if (firstNonWs != '{' && firstNonWs != '[')
-                        return companyId;
-
-                    dynamic data = JsonConvert.DeserializeObject(responseContent);
-                    if (data?.name != null)
-                    {
-                        return data.name.ToString();
-                    }
-
                     return companyId;
                 }
-            }
-            catch
-            {
+
+                // Quick check: must look like JSON (start with { or [)
+                char firstNonWs = responseContent.SkipWhile(char.IsWhiteSpace).FirstOrDefault();
+                if (firstNonWs != '{' && firstNonWs != '[')
+                {
+                    // Not JSON, probably HTML error page
+                    Console.WriteLine("VIES returned non‑JSON content");
+                    return companyId;
+                }
+
+                // Deserialize into VatResponse object
+                VatResponse data;
+                try
+                {
+                    data = JsonConvert.DeserializeObject<VatResponse>(responseContent);
+                }
+                catch (Newtonsoft.Json.JsonException ex)
+                {
+                    // JSON is invalid or doesn't match VatResponse
+                    Console.WriteLine("Error deserializing VIES response: " + ex.Message);
+                    return companyId;
+                }
+
+                // Access fields
+                if (data != null && data.IsValid)
+                {
+                    return ToTitleCase(data.Name ?? string.Empty);
+                }
+
                 return companyId;
             }
+            catch (HttpRequestException ex)
+            {
+                Console.WriteLine($"Request error: {ex.Message}");
+                return companyId;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected VIES error: {ex.Message}");
+                return companyId;
+            }
+        }
+        
+        // Utility method to convert a string to title case
+        public static string ToTitleCase(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            // step 1: bring everything to lowercase
+            var lower = input.ToLower(CultureInfo.CurrentCulture);
+
+            // step 2: capitalize the first letter of each word
+            var textInfo = CultureInfo.CurrentCulture.TextInfo;
+            return textInfo.ToTitleCase(lower);
         }
 
         // OleDb Helper: Build connection string
