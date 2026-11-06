@@ -10,11 +10,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using static MarSync.AdemicoModels;
+using static MarSync.AdemicoModelsV1;
 
 namespace MarSync
 {
-    public class AdemicoClient
+    public class AdemicoClientV1
     {
         static readonly string ademicoUrl = SharedGlobals.AdemicoApiUrl;
         static readonly string accessToken = SharedGlobals.AdemicoAccessToken;
@@ -553,7 +553,7 @@ namespace MarSync
         }
     }
 
-    public class AdemicoModels
+    public class AdemicoModelsV1
     {
         public class ViesApproximate
         {

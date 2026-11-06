@@ -20,7 +20,7 @@ using System.Windows.Forms;
 using System.Xml;
 using Vsoft.Mail;
 using ZXing;
-using static MarSync.AdemicoModels;
+using static MarSync.AdemicoModelsV1;
 using static MarSync.MarHelpers;
 
 using Timer = System.Windows.Forms.Timer;
@@ -385,7 +385,7 @@ namespace MarSync.MarioMenu.Actions
         {
             try
             {
-                var response = await AdemicoClient.CheckConnection(new HttpClient());
+                var response = await AdemicoClientV1.CheckConnection(new HttpClient());
                 if (!string.IsNullOrEmpty(response))
                 {
                     if (response.Contains("HttpRequestException"))
@@ -722,7 +722,7 @@ namespace MarSync.MarioMenu.Actions
             
             try
             {
-                var result = await AdemicoClient.SendInvoiceResponseAsync(
+                var result = await AdemicoClientV1.SendInvoiceResponseAsync(
                     invoiceTransmissionId: TextBoxToAcceptOrRejectTransId.Text,  // "2278c90b96ea11f0a46406668988840f",
                     responseCode: selectedResponseCode, // "AP" = Accepted, see your code table
                     note: TextBoxNote.Text,
@@ -808,7 +808,7 @@ namespace MarSync.MarioMenu.Actions
         async private void ButtonNotifications_Click(object sender, EventArgs e)
         {
             // check if Response contains Too many requests
-            var jsonResponse = await AdemicoClient.GetNotificationsAsync(
+            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: TbNotificationTransId.Text, // "f8a591c77b2211f0b1ed0af13d778bd4"
                 documentId: TbNotificationDocumentId.Text,
                 // documentStatus: TbNotificationDocumentStatus.Text, // "RECEIVED" or "SENT"
@@ -1550,7 +1550,7 @@ namespace MarSync.MarioMenu.Actions
 
                         foreach (int id in notificationIdsStep1)
                         {
-                            var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
+                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
                                 MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
@@ -1563,7 +1563,7 @@ namespace MarSync.MarioMenu.Actions
 
                         foreach (int id in notificationIdsSent)
                         {
-                            var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
+                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
                                 MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
@@ -1590,7 +1590,7 @@ namespace MarSync.MarioMenu.Actions
                     
                     try
                     {
-                        var result = await AdemicoClient.PeppolInvoiceSender.SendUblInvoiceAsync(
+                        var result = await AdemicoClientV1.PeppolInvoiceSender.SendUblInvoiceAsync(
                             filePath: filePath,
                             xC5Reporting: false // or true if needed for Singapore reporting
                         );
@@ -1793,7 +1793,7 @@ namespace MarSync.MarioMenu.Actions
                         // 1) Delete all INVOICE_RESPONSE_SENT notifications for this document
                         foreach (int id in notificationIdsStep1)
                         {
-                            var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
+                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
                                 MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
@@ -1806,7 +1806,7 @@ namespace MarSync.MarioMenu.Actions
 
                         foreach (int id in notificationIdsStep2)
                         {
-                            var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
+                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                             if (result.StatusCode != HttpStatusCode.OK)
                             {
                                 MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
@@ -1895,7 +1895,7 @@ namespace MarSync.MarioMenu.Actions
                             // 1) Delete all INVOICE_RESPONSE_SENT notifications for this document
                             foreach (int id in notificationIdsStep1)
                             {
-                                var result = await AdemicoClient.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                                 if (result.StatusCode != HttpStatusCode.OK)
                                 {
                                     MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
@@ -2147,7 +2147,7 @@ namespace MarSync.MarioMenu.Actions
         {
             string companyNumber = SharedGlobals.CompanyKBONumber.ToString();
 
-            var jsonResponse = await AdemicoClient.GetNotificationsAsync(
+            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -2167,7 +2167,7 @@ namespace MarSync.MarioMenu.Actions
                 SharedGlobals.NotificationsSenderALL = result;
             }
 
-            var jsonResponse2 = await AdemicoClient.GetNotificationsAsync(
+            var jsonResponse2 = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -2336,7 +2336,7 @@ namespace MarSync.MarioMenu.Actions
             try
             {
                 // Get all notifications for server account (from FormAdminPeppolActions logic)
-                var jsonResponse = await AdemicoClient.GetNotificationsAsync(
+                var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                     transmissionId: "",
                     documentId: "",
                     eventType: "",

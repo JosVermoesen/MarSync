@@ -17,7 +17,7 @@ using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
 using Vsoft.Mail;
-using static MarSync.AdemicoModels;
+using static MarSync.AdemicoModelsV1;
 
 namespace MarSync.MarioMenu.Admin
 {
@@ -87,7 +87,7 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
             Application.DoEvents();
 
-            var response = await AdemicoClient.CheckConnection(new HttpClient());
+            var response = await AdemicoClientV1.CheckConnection(new HttpClient());
             if (response != null)
             {
                 ToolStripStatusLabel.Text = response;
@@ -142,7 +142,7 @@ namespace MarSync.MarioMenu.Admin
 
             try
             {
-                var respons = await AdemicoClient.GetPeppolRegistrationAsync(
+                var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
                     country,
                     peppolRegistrationScheme,
                     peppolRegistrationIdentifier,
@@ -212,7 +212,7 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
 
             string eventType = ""; // RadioButtonGetReceived.Checked ? "DOCUMENT_RECEIVED" : "DOCUMENT_SENT";
-            var jsonResponse = await AdemicoClient.GetNotificationsAsync(
+            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: "", // "f8a591c77b2211f0b1ed0af13d778bd4"
                 documentId: "",
                 eventType: eventType, // "DOCUMENT_RECEIVED" or "DOCUMENT_SENT"
@@ -424,7 +424,7 @@ namespace MarSync.MarioMenu.Admin
 
                     try
                     {
-                        var result = await AdemicoClient.CreateOrRegisterLegalEntityAsync(request: entity);
+                        var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
 
                         ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
                         MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -486,7 +486,7 @@ namespace MarSync.MarioMenu.Admin
                     };
                     try
                     {
-                        var result = await AdemicoClient.CreateOrRegisterLegalEntityAsync(request: entity);
+                        var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
 
                         ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
                         MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -535,7 +535,7 @@ namespace MarSync.MarioMenu.Admin
                 };
                 try
                 {
-                    var result = await AdemicoClient.CreateOrRegisterLegalEntityAsync(request: entity);
+                    var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
 
                     ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
                     MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -639,7 +639,7 @@ namespace MarSync.MarioMenu.Admin
 
             try
             {
-                var result = await AdemicoClient.PeppolInvoiceSender.SendUblInvoiceAsync(
+                var result = await AdemicoClientV1.PeppolInvoiceSender.SendUblInvoiceAsync(
                     filePath: filePath,
                     xC5Reporting: false // or true if needed for Singapore reporting
                 );
@@ -1147,7 +1147,7 @@ namespace MarSync.MarioMenu.Admin
 
         private async Task<bool> GetAllNotificationsForServerAccount()
         {
-            var jsonResponse = await AdemicoClient.GetNotificationsAsync(
+            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -1284,7 +1284,7 @@ namespace MarSync.MarioMenu.Admin
             string entitiesResult;
             try
             {
-                var respons = await AdemicoClient.GetPeppolRegistrationAsync(
+                var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
                     country: "BE",
                     peppolRegistrationScheme: "",
                     peppolRegistrationIdentifier: "",

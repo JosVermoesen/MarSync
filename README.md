@@ -35,12 +35,14 @@ namespace MarSync.Classes.Ademico
 {
     internal class MyApiSecrets
     {
-        internal static readonly string testBaseUrl = "https://test.com/whatever";
+        internal static readonly string testBaseUrlV1 = "https://test.whateverv1";
+        internal static readonly string testBaseUrlV2 = "https://test.whateverv2";
         internal static readonly string testAccessToken = "your-test-access-token";
         internal static readonly string testUsername = "your-test-username";
         internal static readonly string testPassword = "your-test-password";
 
-        internal static readonly string prodBaseUrl = "https://production.com/whatever";
+        internal static readonly string prodBaseUrlV1 = "https://prod.whateverv1";
+        internal static readonly string prodBaseUrlV2 = "https://prod.whateverv2";
         internal static readonly string prodAccessToken = "your-production-access-token";
         internal static readonly string prodUsername = "your-production-username";
         internal static readonly string prodPassword = "your-production-password";
