@@ -83,7 +83,7 @@ namespace MarSync.MarioMenu.Actions
 
             InitializeControls();
             ShowOnlyFirstTwoTabs();
-            RefreshMonitor(false);
+            _ = RefreshMonitor(false);
         }
 
         private void ShowOnlyFirstTwoTabs()
@@ -265,8 +265,8 @@ namespace MarSync.MarioMenu.Actions
             ToolStripStatusLabel.Text = "Bezig...";
             Application.DoEvents();
 
-            RefreshListPeppolReceive();
-            RefreshListPeppolSend();
+            await RefreshListPeppolReceive();
+            await RefreshListPeppolSend();
 
             if (withActions)
             {
@@ -436,7 +436,7 @@ namespace MarSync.MarioMenu.Actions
             }
 
             // Do an immediate refresh then start the scheduled loop            
-            RefreshMonitor(true);
+            _ = RefreshMonitor(true);
 
             // Start the main timer
             _timer.Start();
@@ -1335,7 +1335,7 @@ namespace MarSync.MarioMenu.Actions
                 _timer.Stop();
                 ToolStripStatusLabel.Text = "De tijd is om!";
                 totalInMapInToBook = 0;
-                RefreshMonitor(true); // Refresh second time when countdown reaches zero
+                _ = RefreshMonitor(true); // Refresh second time when countdown reaches zero
 
                 // Re-enable the Buttons so the user can start the cycle again
                 ButtonTimer.Enabled = true;
@@ -2317,12 +2317,7 @@ namespace MarSync.MarioMenu.Actions
         }
 
         private async void ButtonMyStatusReport_Click(object sender, EventArgs e)
-        {
-            ButtonMyStatusReport.Enabled = false;
-
-            Cursor.Current = Cursors.WaitCursor;
-            Application.DoEvents();
-
+        {               
             // Get the active company's KBO number
             string activeCompanyKBO = SharedGlobals.CompanyKBONumber;
             string activeCompanyName = SharedGlobals.CompanyName;
@@ -2330,12 +2325,15 @@ namespace MarSync.MarioMenu.Actions
             if (string.IsNullOrWhiteSpace(activeCompanyKBO))
             {
                 MessageBox.Show("Geen actieve onderneming geselecteerd.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                Cursor.Current = Cursors.Default;
                 return;
             }
 
             try
             {
+                this.Enabled = false;
+                ToolStripStatusLabel.Text = "Een ogenblik a.u.b. Rapport genereren...";
+                Application.DoEvents();
+
                 // Get all notifications for server account (from FormAdminPeppolActions logic)
                 var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                     transmissionId: "",
@@ -2353,7 +2351,6 @@ namespace MarSync.MarioMenu.Actions
                 if (jsonResponse == null || string.IsNullOrEmpty(jsonResponse))
                 {
                     MessageBox.Show("Geen notificaties gevonden.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    Cursor.Current = Cursors.Default;
                     return;
                 }
 
@@ -2381,15 +2378,13 @@ namespace MarSync.MarioMenu.Actions
             }
             finally
             {
-                Cursor.Current = Cursors.Default;
+                this.Enabled = true;
+                ToolStripStatusLabel.Text = "Klaar! Druk [Esc] om te sluiten.";
             }
         }
 
         private async Task<string> GenerateCompanyStatusReport(string kboNumber, string companyName, string allNotifications)
-        {
-            Cursor.Current = Cursors.WaitCursor;
-            Application.DoEvents();
-
+        {            
             var htmlBegin = new StringBuilder();
             var htmlReceiver = new StringBuilder();
             var htmlReactionsSent = new StringBuilder();
