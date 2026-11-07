@@ -268,7 +268,7 @@ namespace MarSync.MarioMenu.Actions
             if (RadioButtonTestMode.Checked)
             {
                 MarHelpers.SetApiMode("TESTMODE");
-                Properties.Settings.Default.PeppolTestMode2027 = true;
+                Properties.Settings.Default.PeppolTestMode = true;
                 Properties.Settings.Default.Save();                
             }
         }
@@ -280,7 +280,7 @@ namespace MarSync.MarioMenu.Actions
                 if (SharedGlobals.UserProdGuid.Trim() != "")
                 {
                     MarHelpers.SetApiMode("PRODUCTIE");
-                    Properties.Settings.Default.PeppolTestMode2027 = false;
+                    Properties.Settings.Default.PeppolTestMode = false;
                     Properties.Settings.Default.Save();
                 }
                 else

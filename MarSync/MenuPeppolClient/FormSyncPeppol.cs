@@ -63,11 +63,11 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v4.0.0.0 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v3.0.4.0 [" + SharedGlobals.ActiveCompany + "]";
             }
             else
             {
-                Text = "MarSync v4.0.0.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v3.0.4.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
             }
             LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
 

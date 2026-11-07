@@ -36,7 +36,7 @@ namespace MarSync.MenuPeppolClient
             }
             SharedGlobals.UserCanToggleTabs = true;
             MessageBox.Show("De ingegeven GUID is correct.\nU krijgt toegang tot de TAB pagina's.","Waarschuwing");
-            Properties.Settings.Default.UserCanToggleTabs2027 = SharedGlobals.UserCanToggleTabs;
+            Properties.Settings.Default.UserCanToggleTabs = SharedGlobals.UserCanToggleTabs;
             Properties.Settings.Default.Save();
 
             LabelToggleTabs.Visible = false;
@@ -84,8 +84,8 @@ namespace MarSync.MenuPeppolClient
             }
             SharedGlobals.UserProdGuid = TextBoxProdGuidToValidate.Text;
             MessageBox.Show("De ingegeven Productie GUID is correct.\nU kan nu aan de slag met Peppol voor marIntegraal.","Informatie");
-            Properties.Settings.Default.ProdGuidToControl2027 = SharedGlobals.UserProdGuid;
-            Properties.Settings.Default.PeppolTestMode2027 = false;
+            Properties.Settings.Default.ProdGuidToControl = SharedGlobals.UserProdGuid;
+            Properties.Settings.Default.PeppolTestMode = false;
             Properties.Settings.Default.Save();
 
 
@@ -108,7 +108,7 @@ namespace MarSync.MenuPeppolClient
             }
             SharedGlobals.UserTestGuid = TextBoxTestGuidToValidate.Text;
             MessageBox.Show("De ingegeven Test GUID is correct.\nU kan nu aan de slag met Peppol voor marIntegraal.");
-            Properties.Settings.Default.TestGuidToControl2027 = SharedGlobals.UserTestGuid;
+            Properties.Settings.Default.TestGuidToControl = SharedGlobals.UserTestGuid;
             Properties.Settings.Default.Save();
 
             LabelTestGuid.Enabled = false;
