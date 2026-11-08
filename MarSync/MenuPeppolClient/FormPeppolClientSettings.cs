@@ -13,6 +13,7 @@ namespace MarSync.MenuPeppolClient
 {
     public partial class FormPeppolClientSettings : Form
     {
+        bool _isAdmin;
         public FormPeppolClientSettings()
         {
             InitializeComponent();
@@ -49,7 +50,7 @@ namespace MarSync.MenuPeppolClient
             if (TextBoxIsAdminPassword.Text == "Thequickbrownfoxjumpsoverthelazydog123!")
             {
                 SharedGlobals.IsAdmin = true;
-                Properties.Settings.Default.IsAdmin2030 = true;
+                Properties.Settings.Default.IsAdmin = true;
                 Properties.Settings.Default.Save();
                 MessageBox.Show("Admin rechten verkregen.\nHerstart het programma om de admin rechten beschikbaar te maken.");
                 TextBoxIsAdminPassword.Visible = false;
@@ -58,7 +59,7 @@ namespace MarSync.MenuPeppolClient
             }
             else
             {
-                Properties.Settings.Default.IsAdmin2030 = false;
+                Properties.Settings.Default.IsAdmin = false;
                 Properties.Settings.Default.Save();
                 SharedGlobals.IsAdmin = false;
                 MessageBox.Show("Foutief paswoord");
@@ -117,20 +118,11 @@ namespace MarSync.MenuPeppolClient
         }
         private void FormPeppolClientSettings_Load(object sender, EventArgs e)
         {
-            bool isAdmin = Properties.Settings.Default.IsAdmin2030;
-            if (isAdmin)
+            _isAdmin = Properties.Settings.Default.IsAdmin;
+            if (_isAdmin)
             {
                 CheckBoxIsAdmin.Checked = true;
                 CheckBoxIsAdmin.Enabled = false;
-                TextBoxIsAdminPassword.Enabled = false;
-                ButtonValidate.Enabled = false;                
-            }
-            else
-            {
-                CheckBoxIsAdmin.Checked = false;
-                CheckBoxIsAdmin.Enabled = true;
-                TextBoxIsAdminPassword.Enabled = true;
-                ButtonValidate.Enabled  = true;
             }
 
             if (SharedGlobals.UserTestGuid != MyApiSecrets.guidTestAccess)
@@ -174,18 +166,25 @@ namespace MarSync.MenuPeppolClient
 
         }
         private void CheckBoxIsAdmin_CheckedChanged(object sender, EventArgs e)
-        {
-            bool isAdmin = Properties.Settings.Default.IsAdmin2030;
-            if (CheckBoxIsAdmin.Checked && isAdmin)
-            {   
-                TextBoxIsAdminPassword.Enabled = false;
-                ButtonValidate.Enabled = false;                
-            }
-            else
+        {            
+            if (CheckBoxIsAdmin.Checked)
             {
-                TextBoxIsAdminPassword.Enabled = true;
+                TextBoxIsAdminPassword.Visible = true;
+                if (_isAdmin)
+                {
+                    TextBoxIsAdminPassword.Enabled = false;                    
+                    ButtonValidate.Enabled = false;
+                    return;
+                }
+                TextBoxIsAdminPassword.Enabled = true;                
+                ButtonValidate.Visible = true;
                 ButtonValidate.Enabled = true;
             }
+            else
+            {                
+                TextBoxIsAdminPassword.Visible = false;
+                ButtonValidate.Visible = false;
+            }            
         }
     }
 }

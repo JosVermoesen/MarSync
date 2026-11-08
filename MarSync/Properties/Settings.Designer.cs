@@ -146,12 +146,12 @@ namespace MarSync.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool IsAdmin2030 {
+        public bool IsAdmin {
             get {
-                return ((bool)(this["IsAdmin2030"]));
+                return ((bool)(this["IsAdmin"]));
             }
             set {
-                this["IsAdmin2030"] = value;
+                this["IsAdmin"] = value;
             }
         }
         

@@ -165,7 +165,7 @@ namespace MarSync
 
         private void FormMario_Shown(object sender, EventArgs e)
         {
-            bool isAdmin = Properties.Settings.Default.IsAdmin2030;
+            bool isAdmin = Properties.Settings.Default.IsAdmin;
             AdminMenuItem.Visible = isAdmin; // Show or hide the Admin menu based on the IsAdmin setting             
 
             // Load MimDataLocation from marIntegraal settings

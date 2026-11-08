@@ -168,7 +168,7 @@
             this.Controls.Add(this.ButtonValidateTestGuid);
             this.Controls.Add(this.TextBoxTestGuidToValidate);
             this.Controls.Add(this.LabelTestGuid);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Name = "FormPeppolClientSettings";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "FormSettings";
