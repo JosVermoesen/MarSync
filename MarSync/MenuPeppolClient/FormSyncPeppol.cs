@@ -21,7 +21,6 @@ using System.Windows.Forms;
 using System.Xml;
 using Vsoft.Mail;
 using ZXing;
-
 using static MarSync.MarHelpers;
 
 using Timer = System.Windows.Forms.Timer;
@@ -266,7 +265,7 @@ namespace MarSync.MarioMenu.Actions
             Application.DoEvents();
 
             await RefreshListPeppolReceive();
-            await RefreshListPeppolSend();
+            await RefreshListPeppolSent();
 
             if (withActions)
             {
@@ -1539,14 +1538,26 @@ namespace MarSync.MarioMenu.Actions
                         // 1) Delete all INVOICE_RESPONSE_RECEIVED notifications for this document
                         string virtualResponses2 = FilterJson(documentId, false, "INVOICE_RESPONSE_RECEIVED");
                         int[] notificationIdsStep1 = GetNotificationIds(virtualResponses2);
-
+                        
+                        
                         foreach (int id in notificationIdsStep1)
                         {
-                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
-                            if (result.StatusCode != HttpStatusCode.OK)
+                            if (SharedGlobals.AdemicoApiUsedV2)
                             {
-                                MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                var result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                if (result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                }
                             }
+                            else
+                            {
+                                var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                if (result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                }
+                            }                                
                         }
 
                         // 2) Then delete the DOCUMENT_SENT notification(s) (normally only one)
@@ -1555,13 +1566,23 @@ namespace MarSync.MarioMenu.Actions
 
                         foreach (int id in notificationIdsSent)
                         {
-                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
-                            if (result.StatusCode != HttpStatusCode.OK)
+                            if (SharedGlobals.AdemicoApiUsedV2)
                             {
-                                MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                var result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                if (result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                }
                             }
+                            else
+                            {
+                                var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                if (result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                }
+                            }                                
                         }
-
                         titanicDeckChairs++;
 
                         // 3) Only after all deletes are awaited, move to archive folder
@@ -1579,77 +1600,146 @@ namespace MarSync.MarioMenu.Actions
 
                     string filePath = item.ToString(); // LabelFileOut.Text.Trim();
                     string activeSellerDocument = MarHelpers.ReadUBLInvoice(filePath, false, false, false, false, false).ToUpper();
-                    
-                    try
+
+                    if (SharedGlobals.AdemicoApiUsedV2)
                     {
-                        var result = await AdemicoClientV1.PeppolInvoiceSender.SendUblInvoiceAsync(
-                            filePath: filePath,
-                            xC5Reporting: false // or true if needed for Singapore reporting
-                        );
-
-                        ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
-
-                        // result.statusCode should be "0K" if successful                        
-                        int sentStatuscode = (int)result.StatusCode;
-                        if (sentStatuscode == 400) // Bad Request
+                        try
                         {
-                            badRequestsOccurred = true;
-                            // else such as result.statusCode "BadRequest" send document to Vsoft!
+                            var result = await AdemicoClientV2.PeppolInvoiceSender.SendUblInvoiceAsync(
+                                filePath: filePath,
+                                xC5Reporting: false);
 
-                            string sendBadRequest =
-                                PeppolMailSender.SendBadRequestPeppolMail(
-                                    smtpServer: MyApiSecrets.smtpServer,
-                                    smtpPort: MyApiSecrets.smtpPort,
-                                    enableSsl: MyApiSecrets.smtpUseSsl,
-                                    smtpUser: MyApiSecrets.smtpUsername,
-                                    smtpPassword: MyApiSecrets.smtpPassword,
-                                    fromEmail: SharedGlobals.CompanyEmailAddress,
-                                    fromName: SharedGlobals.CompanyName,
-                                    vsoftAdminEmail: MyApiSecrets.marSyncAdminEmail,
-                                    vsoftAdminName: MyApiSecrets.marSyncAdminName,
-                                    selectedPeppolFile: filePath,
-                                    responseBody: result.ResponseBody.ToString(),
-                                    apiModus: SharedGlobals.ApiModus,
-                                    log: Console.WriteLine
-                                );
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
 
-                            // string messageUI = "Een mail Bad Request werd verzonden naar Vsoft voor:\n\n" + filePath;
-                            // MessageBox.Show(messageUI, "Melding Bad Request", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            ToolStripStatusLabel.Text = "Een mail Bad Request werd verzonden naar Admin voor:\n\n" + filePath;
+                            // result.statusCode should be "0K" if successful                        
+                            int sentStatuscode = (int)result.StatusCode;
+                            if (sentStatuscode == 400) // Bad Request
+                            {
+                                badRequestsOccurred = true;
+                                // else such as result.statusCode "BadRequest" send document to Vsoft!
+
+                                string sendBadRequest =
+                                    PeppolMailSender.SendBadRequestPeppolMail(
+                                        smtpServer: MyApiSecrets.smtpServer,
+                                        smtpPort: MyApiSecrets.smtpPort,
+                                        enableSsl: MyApiSecrets.smtpUseSsl,
+                                        smtpUser: MyApiSecrets.smtpUsername,
+                                        smtpPassword: MyApiSecrets.smtpPassword,
+                                        fromEmail: SharedGlobals.CompanyEmailAddress,
+                                        fromName: SharedGlobals.CompanyName,
+                                        vsoftAdminEmail: MyApiSecrets.marSyncAdminEmail,
+                                        vsoftAdminName: MyApiSecrets.marSyncAdminName,
+                                        selectedPeppolFile: filePath,
+                                        responseBody: result.ResponseBody.ToString(),
+                                        apiModus: SharedGlobals.ApiModus,
+                                        log: Console.WriteLine
+                                    );
+
+                                // string messageUI = "Een mail Bad Request werd verzonden naar Vsoft voor:\n\n" + filePath;
+                                // MessageBox.Show(messageUI, "Melding Bad Request", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                ToolStripStatusLabel.Text = "Een mail Bad Request werd verzonden naar Admin voor:\n\n" + filePath;
+                            }
+
+                            if (!string.IsNullOrEmpty(result.ResponseBody)) // Ensure ResponseBody is not null or empty
+                            {
+                                var deserializedString = JsonConvert.DeserializeObject(value: result.ResponseBody);
+                                RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+
+                                bool updatedRS = SetDocumentResultRS(activeSellerDocument, RichTextBoxResponses.Text, 0);
+
+                                totalInMapOutSent++;
+                                titanicDeckChairs++;
+
+                                string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
+                                isSeller: true,
+                                sourceFolderPathAndFile: filePath,
+                                cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
+                            }
+                            else
+                            {
+                                ToolStripStatusLabel.Text = "Geen response body.";
+                            }
                         }
-
-                        if (!string.IsNullOrEmpty(result.ResponseBody)) // Ensure ResponseBody is not null or empty
+                        catch (Exception ex)
                         {
-                            var deserializedString = JsonConvert.DeserializeObject(value: result.ResponseBody);
-                            RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
-
-                            bool updatedRS = SetDocumentResultRS(activeSellerDocument, RichTextBoxResponses.Text, 0);
-
-                            totalInMapOutSent++;
-                            titanicDeckChairs++;
-
-                            string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
-                            isSeller: true,
-                            sourceFolderPathAndFile: filePath,
-                            cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
-                        }
-                        else
-                        {
-                            ToolStripStatusLabel.Text = "Geen response body.";
+                            ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
+                            // MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
-                        // MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }                    
+                        try
+                        {
+
+                            var result = await AdemicoClientV1.PeppolInvoiceSender.SendUblInvoiceAsync(
+                                filePath: filePath,
+                                xC5Reporting: false);
+
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+
+                            // result.statusCode should be "0K" if successful                        
+                            int sentStatuscode = (int)result.StatusCode;
+                            if (sentStatuscode == 400) // Bad Request
+                            {
+                                badRequestsOccurred = true;
+                                // else such as result.statusCode "BadRequest" send document to Vsoft!
+
+                                string sendBadRequest =
+                                    PeppolMailSender.SendBadRequestPeppolMail(
+                                        smtpServer: MyApiSecrets.smtpServer,
+                                        smtpPort: MyApiSecrets.smtpPort,
+                                        enableSsl: MyApiSecrets.smtpUseSsl,
+                                        smtpUser: MyApiSecrets.smtpUsername,
+                                        smtpPassword: MyApiSecrets.smtpPassword,
+                                        fromEmail: SharedGlobals.CompanyEmailAddress,
+                                        fromName: SharedGlobals.CompanyName,
+                                        vsoftAdminEmail: MyApiSecrets.marSyncAdminEmail,
+                                        vsoftAdminName: MyApiSecrets.marSyncAdminName,
+                                        selectedPeppolFile: filePath,
+                                        responseBody: result.ResponseBody.ToString(),
+                                        apiModus: SharedGlobals.ApiModus,
+                                        log: Console.WriteLine
+                                    );
+
+                                // string messageUI = "Een mail Bad Request werd verzonden naar Vsoft voor:\n\n" + filePath;
+                                // MessageBox.Show(messageUI, "Melding Bad Request", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                ToolStripStatusLabel.Text = "Een mail Bad Request werd verzonden naar Admin voor:\n\n" + filePath;
+                            }
+
+                            if (!string.IsNullOrEmpty(result.ResponseBody)) // Ensure ResponseBody is not null or empty
+                            {
+                                var deserializedString = JsonConvert.DeserializeObject(value: result.ResponseBody);
+                                RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+
+                                bool updatedRS = SetDocumentResultRS(activeSellerDocument, RichTextBoxResponses.Text, 0);
+
+                                totalInMapOutSent++;
+                                titanicDeckChairs++;
+
+                                string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
+                                isSeller: true,
+                                sourceFolderPathAndFile: filePath,
+                                cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
+                            }
+                            else
+                            {
+                                ToolStripStatusLabel.Text = "Geen response body.";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
+                            // MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                                         
                 }
             }
             totalInMapOutSentConfirmed = localTotalOutSentConfirmed;
             totalInMapOutAcceptedOrRejected = localTotalInMapOutAcceptedOrRejected;
             // Show documents that were successfully sent to Peppol (have transmissionId)
             LabelTotalInMapOutSentConfirmed.Text = totalInMapOutSent.ToString();
-            await RefreshListPeppolSend();
+            await RefreshListPeppolSent();
         }
 
         async private Task RefreshCyclePeppolReceive()
@@ -1784,11 +1874,28 @@ namespace MarSync.MarioMenu.Actions
 
                         // 1) Delete all INVOICE_RESPONSE_SENT notifications for this document
                         foreach (int id in notificationIdsStep1)
-                        {
-                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
-                            if (result.StatusCode != HttpStatusCode.OK)
+                        {                            
+                            if (SharedGlobals.AdemicoApiUsedV2)
                             {
-                                MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
+                                var result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                if (result == null || result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    string errorMessage = result?.ResponseBody ?? "Unknown error occurred";
+                                    MessageBox.Show($"Er is iets misgegaan: {errorMessage}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+                                Console.WriteLine("Notificatie succesvol verwijderd");
+                            }
+                            else
+                            {
+                                var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                if (result == null || result.StatusCode != HttpStatusCode.OK)
+                                {
+                                    string errorMessage = result?.ResponseBody ?? "Unknown error occurred";
+                                    MessageBox.Show($"Er is iets misgegaan: {errorMessage}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+                                Console.WriteLine("Notificatie succesvol verwijderd");
                             }                            
                         }
 
@@ -1798,12 +1905,58 @@ namespace MarSync.MarioMenu.Actions
 
                         foreach (int id in notificationIdsStep2)
                         {
-                            var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
-                            if (result.StatusCode != HttpStatusCode.OK)
+                            try
+                            {                                
+                                if (SharedGlobals.AdemicoApiUsedV2)
+                                {
+                                    AdemicoClientV2.ApiResult result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                    if (result.StatusCode == HttpStatusCode.OK)
+                                    {
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
+                                    }
+                                    else if (result.StatusCode == HttpStatusCode.NotFound ||
+                                             (result.StatusCode == HttpStatusCode.BadRequest && result.ResponseBody.Contains("cannot be found")))
+                                    {
+                                        // Notification already deleted or doesn't exist - skip it
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} already deleted or not found - skipping");
+                                    }
+                                    else
+                                    {
+                                        // Other error
+                                        string errorMsg = result?.ResponseBody ?? "Unknown error";
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Error deleting notification {id}: {errorMsg}");
+                                        MessageBox.Show($"Error deleting notification {id}: {errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                }
+                                else
+                                {
+                                    AdemicoClientV1.ApiResult result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                    if (result.StatusCode == HttpStatusCode.OK)
+                                    {
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
+                                    }
+                                    else if (result.StatusCode == HttpStatusCode.NotFound ||
+                                             (result.StatusCode == HttpStatusCode.BadRequest && result.ResponseBody.Contains("cannot be found")))
+                                    {
+                                        // Notification already deleted or doesn't exist - skip it
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} already deleted or not found - skipping");
+                                    }
+                                    else
+                                    {
+                                        // Other error
+                                        string errorMsg = result?.ResponseBody ?? "Unknown error";
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Error deleting notification {id}: {errorMsg}");
+                                        MessageBox.Show($"Error deleting notification {id}: {errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                }                                
+                            }
+                            catch (Exception ex)
                             {
-                                MessageBox.Show("Er is iets misgegaan"); // Handle error, result.ResponseBody may contain error details
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception deleting notification {id}: {ex.Message}");
+                                MessageBox.Show($"Exception deleting notification {id}: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                             }
                         }
+                        Console.WriteLine("Notificaties verwerkt");
 
                         // ToolStripStatusLabel.Text = balansOfPayments;
                         titanicDeckChairs++;
@@ -1887,12 +2040,24 @@ namespace MarSync.MarioMenu.Actions
                             // 1) Delete all INVOICE_RESPONSE_SENT notifications for this document
                             foreach (int id in notificationIdsStep1)
                             {
-                                var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
-                                if (result.StatusCode != HttpStatusCode.OK)
+                                if (SharedGlobals.AdemicoApiUsedV2)
                                 {
-                                    MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                    var result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                    if (result.StatusCode != HttpStatusCode.OK)
+                                    {
+                                        MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                    }
+                                    Console.WriteLine("Ok, Message from snapshot PeppolReceive\nOk, Deleted reaction notification with id: " + id + " for document: " + cleanUpDocument);
                                 }
-                                Console.WriteLine("Ok, Message from snapshot PeppolReceive\nOk, Deleted reaction notification with id: " + id + " for document: " + cleanUpDocument);
+                                else
+                                {
+                                    var result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
+                                    if (result.StatusCode != HttpStatusCode.OK)
+                                    {
+                                        MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
+                                    }
+                                    Console.WriteLine("Ok, Message from snapshot PeppolReceive\nOk, Deleted reaction notification with id: " + id + " for document: " + cleanUpDocument);
+                                }                                    
                             }
                         }                        
                     }
@@ -1922,7 +2087,7 @@ namespace MarSync.MarioMenu.Actions
             totalInMapIn = ListBoxDocumentsIn.Items.Count;
             LabelTotalInMapIn.Text = totalInMapIn.ToString();
         }
-        async private Task RefreshListPeppolSend()
+        async private Task RefreshListPeppolSent()
         {
             totalInMapOut = 0;
             string folderOutPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\out";

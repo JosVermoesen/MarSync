@@ -900,47 +900,230 @@ namespace MarSync
                 }
             }
         }
-
         public static async Task<ApiResult> DeleteNotificationAsync(
             int notificationId,
             CancellationToken cancellationToken = default)
         {
-            string requestUri = ademicoUrl.TrimEnd('/')
-                + "/api/peppol/v2/notifications/" + notificationId
-                + "?accessToken=" + Uri.EscapeDataString(accessToken);
+            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/notifications/" + notificationId;
 
-            using (var http = new HttpClient())
+            int requestCounter = SharedGlobals.RequestCounter + 1;
+            SharedGlobals.RequestCounter = requestCounter;
+
+            using (var httpClient = new HttpClient())
+            using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
             {
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                http.DefaultRequestHeaders.Accept.Clear();
-                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+                // Add accessToken header (v2 requirement - header only, not query parameter)
+                if (!string.IsNullOrEmpty(accessToken))
                 {
+                    request.Headers.Add("accessToken", accessToken);
+                }
+
+                try
+                {
+                    using (HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                    {
+                        string body = response.Content == null
+                            ? null
+                            : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: DELETE notification {notificationId} - HTTP {(int)response.StatusCode}");
+
+                        if (!string.IsNullOrWhiteSpace(body))
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
+                        }
+                        return new ApiResult(response.StatusCode, body);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                    }
+                    return new ApiResult(0, "HttpRequestException in DeleteNotificationAsync: " + ex.Message);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                    return new ApiResult(0, "Request cancelled in DeleteNotificationAsync: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                    }
+                    return new ApiResult(0, "Exception in DeleteNotificationAsync: " + ex.Message);
+                }
+            }
+        }
+        public static class PeppolInvoiceSender
+        {
+            public class ApiResult
+            {
+                public HttpStatusCode StatusCode { get; set; }
+                public string ResponseBody { get; set; }
+                public SubmissionResponse SubmissionResponse { get; set; }
+
+                public ApiResult(HttpStatusCode statusCode, string responseBody)
+                {
+                    StatusCode = statusCode;
+                    ResponseBody = responseBody;
+                }
+
+                public ApiResult(int statusCode, string responseBody)
+                {
+                    StatusCode = (HttpStatusCode)statusCode;
+                    ResponseBody = responseBody;
+                }
+
+                public bool IsSuccess => StatusCode == HttpStatusCode.OK;
+            }
+
+            public class SubmissionResponse
+            {
+                [JsonPropertyName("transmissionId")]
+                public string TransmissionId { get; set; }
+
+                [JsonPropertyName("documentId")]
+                public string DocumentId { get; set; }
+
+                [JsonPropertyName("documentTypeEnum")]
+                public string DocumentTypeEnum { get; set; }
+
+                [JsonPropertyName("sender")]
+                public string Sender { get; set; }
+
+                [JsonPropertyName("receiver")]
+                public string Receiver { get; set; }
+
+                [JsonPropertyName("sbdhInstanceIdentifier")]
+                public string SbdhInstanceIdentifier { get; set; }
+
+                [JsonPropertyName("c5SubmissionResult")]
+                public C5SubmissionResult C5SubmissionResult { get; set; }
+            }
+
+            public class C5SubmissionResult
+            {
+                [JsonPropertyName("status")]
+                public string Status { get; set; }
+
+                [JsonPropertyName("details")]
+                public object[] Details { get; set; }
+            }
+
+            public static async Task<ApiResult> SendUblInvoiceAsync(
+                string filePath,
+                bool xC5Reporting = false,  // Important note: not used in Belgium, but may be used in other countries such as France.
+                                            // Set to true if you want to receive C5 reporting.
+                CancellationToken cancellationToken = default)
+            {
+                string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/invoices/ubl-submissions";
+
+                int requestCounter = SharedGlobals.RequestCounter + 1;
+                SharedGlobals.RequestCounter = requestCounter;
+
+                using (var httpClient = new HttpClient())
+                using (var form = new MultipartFormDataContent())
+                using (var fileStream = File.OpenRead(filePath))
+                {
+                    var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    // Add accessToken header (v2 requirement - header only, not query parameter)
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                    }
+
+                    // Add X-C5-REPORTING header
+                    httpClient.DefaultRequestHeaders.Add("X-C5-REPORTING", xC5Reporting.ToString().ToLowerInvariant());
+
+                    var fileContent = new StreamContent(fileStream);
+                    fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+                    form.Add(fileContent, "file", Path.GetFileName(filePath));
+
                     try
                     {
-                        using (var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending UBL invoice {Path.GetFileName(filePath)} - C5 Reporting: {xC5Reporting}");
+
+                        using (var response = await httpClient.PostAsync(requestUri, form, cancellationToken).ConfigureAwait(false))
                         {
                             string body = response.Content == null
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            return new ApiResult(response.StatusCode, body);
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+
+                            var result = new ApiResult(response.StatusCode, body);
+
+                            // Parse successful response
+                            if (response.IsSuccessStatusCode && !string.IsNullOrWhiteSpace(body))
+                            {
+                                try
+                                {
+                                    var options = new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
+                                    result.SubmissionResponse = System.Text.Json.JsonSerializer.Deserialize<SubmissionResponse>(body, options);
+
+                                    if (result.SubmissionResponse != null)
+                                    {
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - TransmissionId: {result.SubmissionResponse.TransmissionId}");
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Sender: {result.SubmissionResponse.Sender} -> Receiver: {result.SubmissionResponse.Receiver}");
+                                    }
+                                }
+                                catch (Exception parseEx)
+                                {
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Warning - Could not parse response: {parseEx.Message}");
+                                }
+                            }
+                            else if (!string.IsNullOrWhiteSpace(body))
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                            }
+
+                            return result;
                         }
                     }
                     catch (HttpRequestException ex)
                     {
-                        return new ApiResult(0, "HttpRequestException in DeleteNotificationAsync: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "HttpRequestException in SendUblInvoiceAsync: " + ex.Message);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Request cancelled in SendUblInvoiceAsync: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        return new ApiResult(0, "Exception in DeleteNotificationAsync: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "Exception in SendUblInvoiceAsync: " + ex.Message);
                     }
                 }
             }
         }
-        
+
+
+
+
+
         public sealed class ApiResult
         {
             public HttpStatusCode StatusCode { get; }
