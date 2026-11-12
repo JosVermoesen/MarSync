@@ -212,7 +212,11 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
 
             string eventType = ""; // RadioButtonGetReceived.Checked ? "DOCUMENT_RECEIVED" : "DOCUMENT_SENT";
-            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+
+            var jsonResponse = string.Empty;
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
                 transmissionId: "", // "f8a591c77b2211f0b1ed0af13d778bd4"
                 documentId: "",
                 eventType: eventType, // "DOCUMENT_RECEIVED" or "DOCUMENT_SENT"
@@ -222,9 +226,22 @@ namespace MarSync.MarioMenu.Admin
                 startDateTime: "", // "2023-07-25T11:03:26.688Z"
                 endDateTime: "", // "2023-07-29T11:03:26.688Z"
                 page: "",
-                pageSize: "250"
-            );
-
+                pageSize: "250");
+            }
+            else
+            {
+                jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+                transmissionId: "", // "f8a591c77b2211f0b1ed0af13d778bd4"
+                documentId: "",
+                eventType: eventType, // "DOCUMENT_RECEIVED" or "DOCUMENT_SENT"
+                peppolDocumentType: "", // "INVOICE"
+                sender: TextBoxSender.Text, // "9925:BE0440058217",
+                receiver: TextBoxReceiver.Text, // "0208:0440058217",
+                startDateTime: "", // "2023-07-25T11:03:26.688Z"
+                endDateTime: "", // "2023-07-29T11:03:26.688Z"
+                page: "",
+                pageSize: "250");
+            }
             if (jsonResponse != null)
             {
                 ToolStripStatusLabel.Text = "Notifications retrieved successfully.";
@@ -555,7 +572,7 @@ namespace MarSync.MarioMenu.Admin
 
         async private void ButtonGetUBLDocument_Click(object sender, EventArgs e)
         {
-            string ademicoUrl = SharedGlobals.AdemicoApiUrl;
+            string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
             string accessToken = SharedGlobals.AdemicoAccessToken;
             string username = SharedGlobals.AdemicoUsername;
             string password = SharedGlobals.AdemicoPassword;
@@ -1147,7 +1164,10 @@ namespace MarSync.MarioMenu.Admin
 
         private async Task<bool> GetAllNotificationsForServerAccount()
         {
-            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+            var jsonResponse = string.Empty;
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -1157,9 +1177,22 @@ namespace MarSync.MarioMenu.Admin
                 startDateTime: "",
                 endDateTime: "",
                 page: "",
-                pageSize: "250"
-            );
-
+                pageSize: "250");
+            }
+            else
+            {
+                jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+                transmissionId: "",
+                documentId: "",
+                eventType: "",
+                peppolDocumentType: "",
+                sender: "",
+                receiver: "",
+                startDateTime: "",
+                endDateTime: "",
+                page: "",
+                pageSize: "250");
+            }
             if (jsonResponse != null)
             {
                 var deserializedString = JsonConvert.DeserializeObject(jsonResponse);

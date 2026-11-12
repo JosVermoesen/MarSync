@@ -709,19 +709,23 @@ namespace MarSync
         {
             if (apiMode == "TESTMODE")
             {
-                SharedGlobals.AdemicoApiUrl = MyApiSecrets.testBaseUrlV1;
+                SharedGlobals.AdemicoApiUrlV1 = MyApiSecrets.testBaseUrlV1;
+                SharedGlobals.AdemicoApiUrlV2 = MyApiSecrets.testBaseUrlV2;
                 SharedGlobals.AdemicoAccessToken = MyApiSecrets.testAccessToken;
                 SharedGlobals.AdemicoUsername = MyApiSecrets.testUsername;
                 SharedGlobals.AdemicoPassword = MyApiSecrets.testPassword;
                 SharedGlobals.ApiModus = "TESTMODE";
+                SharedGlobals.AdemicoApiUsedV2 = true; // Set to true for TESTMODE
             }            
             else if (apiMode == "PRODUCTIE")
             {
-                SharedGlobals.AdemicoApiUrl = MyApiSecrets.prodBaseUrlV1;
+                SharedGlobals.AdemicoApiUrlV1 = MyApiSecrets.prodBaseUrlV1;
+                SharedGlobals.AdemicoApiUrlV2 = MyApiSecrets.prodBaseUrlV2;
                 SharedGlobals.AdemicoAccessToken = MyApiSecrets.prodAccessToken;
                 SharedGlobals.AdemicoUsername = MyApiSecrets.prodUsername;
                 SharedGlobals.AdemicoPassword = MyApiSecrets.prodPassword;
                 SharedGlobals.ApiModus = "PRODUCTIE";
+                SharedGlobals.AdemicoApiUsedV2 = false; // Set to true for PRODUCTIE
             }
             else
             {

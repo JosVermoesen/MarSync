@@ -38,7 +38,9 @@
             PeppolOutFiles = 0;
 
             ApiModus = "TESTMODE";
-            AdemicoApiUrl = "";
+            AdemicoApiUrlV1 = "";
+            AdemicoApiUrlV2 = "";
+            AdemicoApiUsedV2 = false;
             AdemicoAccessToken = "";
             AdemicoUsername = "";
             AdemicoPassword = "";
@@ -69,7 +71,9 @@
         public static string LocalSQLSetting2025 { get; set; } = ""; // default values
         public static string HostedSQLSetting2025 { get; set; } = ""; // default values
         public static string ApiModus { get; set; } = "";
-        public static string AdemicoApiUrl { get; set; } = "";
+        public static string AdemicoApiUrlV1 { get; set; } = "";
+        public static string AdemicoApiUrlV2 { get; set; } = "";
+        public static bool AdemicoApiUsedV2 { get; set; } = false;
         public static string AdemicoAccessToken { get; set; } = "";
         public static string AdemicoUsername { get; set; } = "";
         public static string AdemicoPassword { get; set; } = "";

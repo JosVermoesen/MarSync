@@ -21,7 +21,7 @@ using System.Windows.Forms;
 using System.Xml;
 using Vsoft.Mail;
 using ZXing;
-using static MarSync.AdemicoModelsV1;
+
 using static MarSync.MarHelpers;
 
 using Timer = System.Windows.Forms.Timer;
@@ -345,48 +345,22 @@ namespace MarSync.MarioMenu.Actions
             } else
             {
                 ToolStripStatusLabel.Text = "Connectie mislukt, controleer uw verbinding.";             
-            }
-
-            //try
-            //{
-            //    var response = await AdemicoClient.CheckConnection(new HttpClient());
-            //    if (!string.IsNullOrEmpty(response))
-            //    {
-            //        ToolStripStatusLabel.Text = response;
-            //    }
-            //    else
-            //    {
-            //        MessageBox.Show("No response from server.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            //    }
-            //}
-            //catch (HttpRequestException ex)
-            //{
-            //    MessageBox.Show(
-            //        "HTTP error:\n" + ex.Message +
-            //        (ex.InnerException != null ? "\n\nInner: " + ex.InnerException.Message : string.Empty),
-            //        "Connectivity error",
-            //        MessageBoxButtons.OK,
-            //        MessageBoxIcon.Error);
-
-            //    ToolStripStatusLabel.Text = "HTTP error: " + ex.Message;
-            //}
-            //catch (Exception ex)
-            //{
-            //    MessageBox.Show(
-            //        "Unexpected error:\n" + ex.Message,
-            //        "Error",
-            //        MessageBoxButtons.OK,
-            //        MessageBoxIcon.Error);
-
-            //    ToolStripStatusLabel.Text = "Error: " + ex.Message;
-            //}
+            }            
         }
 
         async private Task<bool> IsConnectionValid()
         {
             try
             {
-                var response = await AdemicoClientV1.CheckConnection(new HttpClient());
+                var response = string.Empty;
+                if (SharedGlobals.AdemicoApiUsedV2)
+                {
+                    response = await AdemicoClientV2.CheckConnection(new HttpClient());
+                }
+                else
+                {
+                    response = await AdemicoClientV1.CheckConnection(new HttpClient());
+                }                
                 if (!string.IsNullOrEmpty(response))
                 {
                     if (response.Contains("HttpRequestException"))
@@ -510,7 +484,7 @@ namespace MarSync.MarioMenu.Actions
 
             string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-            string ademicoUrl = SharedGlobals.AdemicoApiUrl;
+            string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
             string accessToken = SharedGlobals.AdemicoAccessToken;
             string username = SharedGlobals.AdemicoUsername;
             string password = SharedGlobals.AdemicoPassword;
@@ -685,7 +659,7 @@ namespace MarSync.MarioMenu.Actions
             string selectedResponseCode =
                 ((KeyValuePair<string, string>)ComboBoxResponseCode.SelectedItem).Key;
                         
-            var clarifications = new List<InvoiceResponseClarification>();
+            var clarifications = new List<AdemicoModelsV1.InvoiceResponseClarification>();
             if (selectedResponseCode == "AP" || selectedResponseCode == "PD")
             {
                 clarifications = null;
@@ -696,7 +670,7 @@ namespace MarSync.MarioMenu.Actions
                 ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
 
                 // Example clarification for rejection
-                var clarification = new InvoiceResponseClarification
+                var clarification = new AdemicoModelsV1.InvoiceResponseClarification
                 {
                     ClarificationType = "OPStatusReason",
                     ClarificationCode = selectedClarificationCode,
@@ -808,8 +782,26 @@ namespace MarSync.MarioMenu.Actions
 
         async private void ButtonNotifications_Click(object sender, EventArgs e)
         {
-            // check if Response contains Too many requests
-            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+            var jsonResponse = "";
+
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
+                    transmissionId: TbNotificationTransId.Text, // "f8a591c77b2211f0b1ed0af13d778bd4"
+                    documentId: TbNotificationDocumentId.Text,
+                    eventType: TbNotificationEventType.Text, // "DOCUMENT_RECEIVED" or "DOCUMENT_SENT"
+                    peppolDocumentType: TbNotificationPeppolDocumentType.Text, // "INVOICE"
+                    sender: TbNotificationSender.Text, // "9925:BE0440058217",
+                    receiver: TbNotificationReceiver.Text, // "0208:0440058217",
+                    startDateTime: "", // "2023-07-25T11:03:26.688Z"
+                    endDateTime: "", // "2023-07-29T11:03:26.688Z"
+                    page: "",
+                    pageSize: "250");
+            }
+            else
+            {
+                // check if Response contains Too many requests
+                jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
                 transmissionId: TbNotificationTransId.Text, // "f8a591c77b2211f0b1ed0af13d778bd4"
                 documentId: TbNotificationDocumentId.Text,
                 // documentStatus: TbNotificationDocumentStatus.Text, // "RECEIVED" or "SENT"
@@ -820,9 +812,8 @@ namespace MarSync.MarioMenu.Actions
                 startDateTime: "", // "2023-07-25T11:03:26.688Z"
                 endDateTime: "", // "2023-07-29T11:03:26.688Z"
                 page: "",
-                pageSize: "250"
-            );
-
+                pageSize: "250");
+            }
             if (jsonResponse != null)
             {
                 ToolStripStatusLabel.Text = "Meldingen succesvol opgehaald.";
@@ -836,7 +827,7 @@ namespace MarSync.MarioMenu.Actions
                     PropertyNameCaseInsensitive = true
                 };
 
-                Root data = System.Text.Json.JsonSerializer.Deserialize<Root>(jsonResponse, options);
+                AdemicoModelsV1.Root data = System.Text.Json.JsonSerializer.Deserialize<AdemicoModelsV1.Root>(jsonResponse, options);
                 // Assuming you have a DataGridView named dgvNotifications
                 DataGridViewNotifications.AutoGenerateColumns = false;
                 DataGridViewNotifications.Columns.Clear();
@@ -1682,7 +1673,7 @@ namespace MarSync.MarioMenu.Actions
                     // Note: DocumentId may contain characters that are not allowed in file names, so we sanitize it                    
                     string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-                    string ademicoUrl = SharedGlobals.AdemicoApiUrl;
+                    string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
                     string accessToken = SharedGlobals.AdemicoAccessToken;
                     string username = SharedGlobals.AdemicoUsername;
                     string password = SharedGlobals.AdemicoPassword;
@@ -2148,7 +2139,10 @@ namespace MarSync.MarioMenu.Actions
         {
             string companyNumber = SharedGlobals.CompanyKBONumber.ToString();
 
-            var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+            var jsonResponse = "";
+            if (SharedGlobals.AdemicoApiUsedV2)
+            { 
+                jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -2158,8 +2152,22 @@ namespace MarSync.MarioMenu.Actions
                 startDateTime: "",
                 endDateTime: "",
                 page: "",
-                pageSize: "250"
-            );
+                pageSize: "250");
+                    }
+            else
+            {
+                jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+                transmissionId: "",
+                documentId: "",
+                eventType: "",
+                peppolDocumentType: "",
+                sender: "",
+                receiver: "",
+                startDateTime: "",
+                endDateTime: "",
+                page: "",
+                pageSize: "250");
+            }
 
             if (jsonResponse != null)
             {
@@ -2168,7 +2176,10 @@ namespace MarSync.MarioMenu.Actions
                 SharedGlobals.NotificationsSenderALL = result;
             }
 
-            var jsonResponse2 = await AdemicoClientV1.GetNotificationsAsync(
+            var jsonResponse2 = "";
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                jsonResponse2 = await AdemicoClientV2.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
                 eventType: "",
@@ -2178,8 +2189,22 @@ namespace MarSync.MarioMenu.Actions
                 startDateTime: "",
                 endDateTime: "",
                 page: "",
-                pageSize: "250"
-            );
+                pageSize: "250");
+            }
+            else
+            {
+                jsonResponse2 = await AdemicoClientV1.GetNotificationsAsync(
+                transmissionId: "",
+                documentId: "",
+                eventType: "",
+                peppolDocumentType: "",
+                sender: "",
+                receiver: "0208:" + companyNumber,
+                startDateTime: "",
+                endDateTime: "",
+                page: "",
+                pageSize: "250");
+            }
 
             if (jsonResponse2 != null)
             {
@@ -2335,7 +2360,10 @@ namespace MarSync.MarioMenu.Actions
                 Application.DoEvents();
 
                 // Get all notifications for server account (from FormAdminPeppolActions logic)
-                var jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+                var jsonResponse = "";
+                if (SharedGlobals.AdemicoApiUsedV2)
+                {
+                    jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
                     transmissionId: "",
                     documentId: "",
                     eventType: "",
@@ -2345,9 +2373,23 @@ namespace MarSync.MarioMenu.Actions
                     startDateTime: "",
                     endDateTime: "",
                     page: "",
-                    pageSize: "250"
-                );
+                    pageSize: "250");
 
+                }
+                else
+                {
+                    jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
+                    transmissionId: "",
+                    documentId: "",
+                    eventType: "",
+                    peppolDocumentType: "",
+                    sender: "",
+                    receiver: "",
+                    startDateTime: "",
+                    endDateTime: "",
+                    page: "",
+                    pageSize: "250");
+                }
                 if (jsonResponse == null || string.IsNullOrEmpty(jsonResponse))
                 {
                     MessageBox.Show("Geen notificaties gevonden.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2675,10 +2717,10 @@ namespace MarSync.MarioMenu.Actions
                 }
 
                 // Deserialize into VatResponse object
-                VatResponse data;
+                AdemicoModelsV1.VatResponse data;
                 try
                 {
-                    data = JsonConvert.DeserializeObject<VatResponse>(responseContent);
+                    data = JsonConvert.DeserializeObject<AdemicoModelsV1.VatResponse>(responseContent);
                 }
                 catch (Newtonsoft.Json.JsonException ex)
                 {

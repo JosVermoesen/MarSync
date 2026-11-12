@@ -118,6 +118,15 @@ namespace MarSync.MenuPeppolClient
         }
         private void FormPeppolClientSettings_Load(object sender, EventArgs e)
         {
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                RadioButtonV2.Checked = true;
+            }
+            else
+            {
+                RadioButtonV1.Checked = true;
+            }
+
             _isAdmin = Properties.Settings.Default.IsAdmin;
             if (_isAdmin)
             {

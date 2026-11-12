@@ -16,113 +16,46 @@ namespace MarSync
 {
     public class AdemicoClientV1
     {
-        static readonly string ademicoUrl = SharedGlobals.AdemicoApiUrl;
+        static readonly string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
         static readonly string accessToken = SharedGlobals.AdemicoAccessToken;
         static readonly string username = SharedGlobals.AdemicoUsername;
         static readonly string password = SharedGlobals.AdemicoPassword;
 
-        public static async Task<ApiResult> DeleteNotificationAsync(
-            int notificationId,
-            CancellationToken cancellationToken = default)
+        public static async Task<string> CheckConnection(HttpClient client)
         {
-            string requestUri = ademicoUrl.TrimEnd('/')
-                + "/api/peppol/v1/notifications/" + notificationId
-                + "?accessToken=" + Uri.EscapeDataString(accessToken);
+            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/tools/connectivity"
+                                + "?accessToken=" + Uri.EscapeDataString(accessToken);
 
-            using (var http = new HttpClient())
+            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+
+            try
             {
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                http.DefaultRequestHeaders.Accept.Clear();
-                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                HttpResponseMessage response = await client.GetAsync(requestUri);
 
-                using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    try
-                    {
-                        using (var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false))
-                        {
-                            string body = response.Content == null
-                                ? null
-                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                            return new ApiResult(response.StatusCode, body);
-                        }
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        return new ApiResult(0, "HttpRequestException in DeleteNotificationAsync: " + ex.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        return new ApiResult(0, "Exception in DeleteNotificationAsync: " + ex.Message);
-                    }
+                    return "Toegang toegestaan ✅";
                 }
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return "Toegang geweigerd ❌";
+                }
+
+                return "Unexpected status: " + (int)response.StatusCode + " " + response.ReasonPhrase;
+            }
+            catch (HttpRequestException ex)
+            {
+                return "HttpRequestException in CheckConnection: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error in CheckConnection: " + ex.Message;
             }
         }
-
-        public static class PeppolInvoiceSender
-        {
-            public sealed class ApiResult
-            {
-                public HttpStatusCode StatusCode { get; }
-                public string ResponseBody { get; }
-                public ApiResult(HttpStatusCode statusCode, string responseBody)
-                {
-                    StatusCode = statusCode;
-                    ResponseBody = responseBody;
-                }
-            }
-
-            public static async Task<ApiResult> SendUblInvoiceAsync(
-                string filePath,
-                bool xC5Reporting = false,
-                CancellationToken cancellationToken = default)
-            {
-                string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/invoices/ubl-submissions"
-                                    + "?accessToken=" + Uri.EscapeDataString(accessToken);
-
-                using (var http = new HttpClient())
-                {
-                    var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-
-                    http.DefaultRequestHeaders.Accept.Clear();
-                    http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                    http.DefaultRequestHeaders.Add("X-C5-REPORTING", xC5Reporting.ToString().ToLowerInvariant());
-
-                    using (var form = new MultipartFormDataContent())
-                    using (var fileStream = File.OpenRead(filePath))
-                    {
-                        var fileContent = new StreamContent(fileStream);
-                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
-                        form.Add(fileContent, "file", Path.GetFileName(filePath));
-
-                        try
-                        {
-                            using (var response = await http.PostAsync(requestUri, form, cancellationToken).ConfigureAwait(false))
-                            {
-                                string body = response.Content == null
-                                    ? null
-                                    : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                                return new ApiResult(response.StatusCode, body);
-                            }
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            return new ApiResult(0, "HttpRequestException in SendUblInvoiceAsync: " + ex.Message);
-                        }
-                        catch (Exception ex)
-                        {
-                            return new ApiResult(0, "Exception in SendUblInvoiceAsync: " + ex.Message);
-                        }
-                    }
-                }
-            }
-        }
-
         public static async Task<string> GetNotificationsAsync(
             string transmissionId,
             string documentId,
@@ -254,11 +187,119 @@ namespace MarSync
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
                         }
                         return "{\"error\": \"" + ex.GetType().Name + ": " + ex.Message + "\"}";
-                    }                    
+                    }
+                }
+            }
+        }
+        public static async Task<ApiResult> DeleteNotificationAsync(
+            int notificationId,
+            CancellationToken cancellationToken = default)
+        {
+            string requestUri = ademicoUrl.TrimEnd('/')
+                + "/api/peppol/v1/notifications/" + notificationId
+                + "?accessToken=" + Uri.EscapeDataString(accessToken);
+
+            using (var http = new HttpClient())
+            {
+                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                http.DefaultRequestHeaders.Accept.Clear();
+                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+                {
+                    try
+                    {
+                        using (var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        return new ApiResult(0, "HttpRequestException in DeleteNotificationAsync: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ApiResult(0, "Exception in DeleteNotificationAsync: " + ex.Message);
+                    }
                 }
             }
         }
 
+
+
+
+
+
+
+
+        public static class PeppolInvoiceSender
+        {
+            public sealed class ApiResult
+            {
+                public HttpStatusCode StatusCode { get; }
+                public string ResponseBody { get; }
+                public ApiResult(HttpStatusCode statusCode, string responseBody)
+                {
+                    StatusCode = statusCode;
+                    ResponseBody = responseBody;
+                }
+            }
+
+            public static async Task<ApiResult> SendUblInvoiceAsync(
+                string filePath,
+                bool xC5Reporting = false,
+                CancellationToken cancellationToken = default)
+            {
+                string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/invoices/ubl-submissions"
+                                    + "?accessToken=" + Uri.EscapeDataString(accessToken);
+
+                using (var http = new HttpClient())
+                {
+                    var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+                    http.DefaultRequestHeaders.Accept.Clear();
+                    http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                    http.DefaultRequestHeaders.Add("X-C5-REPORTING", xC5Reporting.ToString().ToLowerInvariant());
+
+                    using (var form = new MultipartFormDataContent())
+                    using (var fileStream = File.OpenRead(filePath))
+                    {
+                        var fileContent = new StreamContent(fileStream);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("application/xml");
+                        form.Add(fileContent, "file", Path.GetFileName(filePath));
+
+                        try
+                        {
+                            using (var response = await http.PostAsync(requestUri, form, cancellationToken).ConfigureAwait(false))
+                            {
+                                string body = response.Content == null
+                                    ? null
+                                    : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                                return new ApiResult(response.StatusCode, body);
+                            }
+                        }
+                        catch (HttpRequestException ex)
+                        {
+                            return new ApiResult(0, "HttpRequestException in SendUblInvoiceAsync: " + ex.Message);
+                        }
+                        catch (Exception ex)
+                        {
+                            return new ApiResult(0, "Exception in SendUblInvoiceAsync: " + ex.Message);
+                        }
+                    }
+                }
+            }
+        }
+        
         public sealed class LegalEntityResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -390,42 +431,7 @@ namespace MarSync
             }
         }
 
-        public static async Task<string> CheckConnection(HttpClient client)
-        {
-            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/tools/connectivity"
-                                + "?accessToken=" + Uri.EscapeDataString(accessToken);
-
-            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
-
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
-
-            try
-            {
-                HttpResponseMessage response = await client.GetAsync(requestUri);
-
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return "Toegang toegestaan ✅";
-                }
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    return "Toegang geweigerd ❌";
-                }
-
-                return "Unexpected status: " + (int)response.StatusCode + " " + response.ReasonPhrase;
-            }
-            catch (HttpRequestException ex)
-            {
-                return "HttpRequestException in CheckConnection: " + ex.Message;
-            }
-            catch (Exception ex)
-            {
-                return "Error in CheckConnection: " + ex.Message;
-            }
-        }
-
+        
         public sealed class ApiResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -552,9 +558,78 @@ namespace MarSync
             return Uri.EscapeDataString(val ?? string.Empty);
         }
     }
-
     public class AdemicoModelsV1
     {
+        public class Pagination
+        {
+            public int Count { get; set; }
+            public int Page { get; set; }
+            public int PageSize { get; set; }
+        }
+        public class Root
+        {
+            public Pagination Pagination { get; set; }
+            public List<Notification> Notifications { get; set; }
+        }     
+        public class Notification
+    {
+        [JsonPropertyName("eventType")]
+        public string EventType { get; set; }
+
+        [JsonPropertyName("notificationId")]
+        public int NotificationId { get; set; }
+
+        [JsonPropertyName("notificationDate")]
+        public DateTime NotificationDate { get; set; }
+
+        [JsonPropertyName("transmissionId")]
+        public string TransmissionId { get; set; }
+
+        [JsonPropertyName("sbdhTransmissionId")]
+        public string SbdhTransmissionId { get; set; }
+
+        [JsonPropertyName("documentId")]
+        public string DocumentId { get; set; }
+
+        [JsonPropertyName("peppolDocumentType")]
+        public string PeppolDocumentType { get; set; }
+
+        [JsonPropertyName("sender")]
+        public string Sender { get; set; }
+
+        [JsonPropertyName("receiver")]
+        public string Receiver { get; set; }
+
+        [JsonPropertyName("receivedDate")]
+        public DateTime ReceivedDate { get; set; }
+
+        [JsonPropertyName("details")]
+        public List<NotificationDetail> Details { get; set; }
+
+        public Notification()
+        {
+            Details = new List<NotificationDetail>();
+        }
+    }
+        public class NotificationDetail
+    {
+        [JsonPropertyName("code")]
+        public string Code { get; set; }
+
+        [JsonPropertyName("message")]
+        public string Message { get; set; }
+    }
+
+
+
+
+
+
+
+
+        // Other classes like VatResponse, ViesApproximate, Contact, LegalEntityDetails,
+        // PeppolIdentifier, PeppolRegistration, and InvoiceResponseClarification
+        // defined here as needed.
         public class ViesApproximate
         {
             public string Name { get; set; }
@@ -613,33 +688,7 @@ namespace MarSync
             public LegalEntityDetails LegalEntityDetails { get; set; }
             public List<PeppolRegistration> PeppolRegistrations { get; set; }
         }
-
-        public class Pagination
-        {
-            public int Count { get; set; }
-            public int Page { get; set; }
-            public int PageSize { get; set; }
-        }
-        public class Notification
-        {
-            public string EventType { get; set; }
-            public int NotificationId { get; set; }
-            public string TransmissionId { get; set; }
-            public string SbdhTransmissionId { get; set; }
-            public DateTime NotificationDate { get; set; }
-            public string DocumentId { get; set; }
-            public string DocumentStatus { get; set; }
-            public string PeppolDocumentType { get; set; }
-            public string Sender { get; set; }
-            public string Receiver { get; set; }
-            public DateTime ReceivedDate { get; set; }
-        }
-        public class Root
-        {
-            public Pagination Pagination { get; set; }
-            public List<Notification> Notifications { get; set; }
-        }
-
+               
         public class InvoiceResponseClarification
         {
             public string ClarificationCode { get; set; }
@@ -654,5 +703,380 @@ namespace MarSync
             public string EffectiveDate { get; set; }
             public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
         }
+    }
+
+    public class AdemicoClientV2
+    {
+        static readonly string ademicoUrl = SharedGlobals.AdemicoApiUrlV2;
+        static readonly string accessToken = SharedGlobals.AdemicoAccessToken;
+        static readonly string username = SharedGlobals.AdemicoUsername;
+        static readonly string password = SharedGlobals.AdemicoPassword;
+
+        public static async Task<string> CheckConnection(HttpClient client)
+        {
+            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/tools/connectivity";
+
+            // Set up Basic authentication
+            var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
+
+            // Add accessToken as header (as per Postman definition)
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                client.DefaultRequestHeaders.Add("accessToken", accessToken);
+            }
+
+            // Add Accept header
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+
+            try
+            {
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    return "Toegang toegestaan ✅";
+                }
+
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    // Read error response body (typically JSON with error details)
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    return "Toegang geweigerd ❌ - Invalid authentication credentials";
+                }
+
+                return "Unexpected status: " + (int)response.StatusCode + " " + response.ReasonPhrase;
+            }
+            catch (HttpRequestException ex)
+            {
+                return "HttpRequestException in CheckConnection: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error in CheckConnection: " + ex.Message;
+            }
+        }
+        public static async Task<string> GetNotificationsAsync(
+            string transmissionId,
+            string documentId,
+            string eventType,
+            string peppolDocumentType,
+            string sender,
+            string receiver,
+            string startDateTime,
+            string endDateTime,
+            string page,
+            string pageSize,
+            string sort = null,
+            CancellationToken cancellationToken = default)
+        {
+            var queryParams = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(transmissionId)) queryParams.Add("transmissionId=" + Encode(transmissionId));
+            if (!string.IsNullOrWhiteSpace(documentId)) queryParams.Add("documentId=" + Encode(documentId));
+            if (!string.IsNullOrWhiteSpace(eventType)) queryParams.Add("eventType=" + Encode(eventType));
+            if (!string.IsNullOrWhiteSpace(peppolDocumentType)) queryParams.Add("peppolDocumentType=" + Encode(peppolDocumentType));
+            if (!string.IsNullOrWhiteSpace(sender)) queryParams.Add("sender=" + Encode(sender));
+            if (!string.IsNullOrWhiteSpace(receiver)) queryParams.Add("receiver=" + Encode(receiver));
+            if (!string.IsNullOrWhiteSpace(startDateTime)) queryParams.Add("startDateTime=" + Encode(startDateTime));
+            if (!string.IsNullOrWhiteSpace(endDateTime)) queryParams.Add("endDateTime=" + Encode(endDateTime));
+            if (!string.IsNullOrWhiteSpace(page)) queryParams.Add("page=" + Encode(page));
+            if (!string.IsNullOrWhiteSpace(pageSize)) queryParams.Add("pageSize=" + Encode(pageSize));
+            if (!string.IsNullOrWhiteSpace(sort)) queryParams.Add("sort=" + Encode(sort));
+            // REMOVED: accessToken should NOT be added as query parameter in v2
+
+            int requestCounter = SharedGlobals.RequestCounter + 1;
+            SharedGlobals.RequestCounter = requestCounter;
+
+            var fullUrl = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/notifications";
+            if (queryParams.Count > 0)
+                fullUrl += "?" + string.Join("&", queryParams);
+
+            int maxRetries = 3;
+            int attempt = 0;
+
+            while (true)
+            {
+                attempt++;
+                using (var httpClient = new HttpClient())
+                using (var request = new HttpRequestMessage(HttpMethod.Get, fullUrl))
+                {
+                    var authValue = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                    request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authValue);
+
+                    // Add accessToken header (v2 requirement - header only, not query parameter)
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        request.Headers.Add("accessToken", accessToken);
+                    }
+
+                    try
+                    {
+                        using (HttpResponseMessage response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                        {
+                            // Success path
+                            if (response.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
+                                return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            }
+
+                            // Rate limit (429)
+                            if (response.StatusCode == (HttpStatusCode)429)
+                            {
+                                double retryAfterSeconds = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 5;
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
+
+                                if (attempt >= maxRetries)
+                                {
+                                    string errorMsg = $"API rate limit exceeded after {maxRetries} attempts. Server requested {retryAfterSeconds}s backoff.";
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 429, \"retryAfterSeconds\": " + retryAfterSeconds + "}";
+                                }
+
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
+                                await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds), cancellationToken);
+                                continue;
+                            }
+
+                            // Service unavailable (503)
+                            if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
+                            {
+                                string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
+
+                                if (attempt >= maxRetries)
+                                {
+                                    string errorMsg = "Ademico API service temporarily unavailable (HTTP 503). Please try again later.";
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 503}";
+                                }
+
+                                int delaySeconds = Math.Min(5 * attempt, 30);
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {delaySeconds}s delay...");
+                                await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+                                continue;
+                            }
+
+                            // Other non-success status
+                            string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {responseBody}");
+
+                            string errorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
+                            if (!string.IsNullOrWhiteSpace(responseBody))
+                            {
+                                errorMessage += " - " + responseBody;
+                            }
+                            return "{\"error\": \"" + errorMessage + "\", \"statusCode\": " + (int)response.StatusCode + "}";
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return "{\"error\": \"HttpRequestException: " + ex.Message + "\"}";
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return "{\"error\": \"Request cancelled: " + ex.Message + "\"}";
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return "{\"error\": \"" + ex.GetType().Name + ": " + ex.Message + "\"}";
+                    }
+                }
+            }
+        }
+
+        public static async Task<ApiResult> DeleteNotificationAsync(
+            int notificationId,
+            CancellationToken cancellationToken = default)
+        {
+            string requestUri = ademicoUrl.TrimEnd('/')
+                + "/api/peppol/v2/notifications/" + notificationId
+                + "?accessToken=" + Uri.EscapeDataString(accessToken);
+
+            using (var http = new HttpClient())
+            {
+                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                http.DefaultRequestHeaders.Accept.Clear();
+                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                using (var request = new HttpRequestMessage(HttpMethod.Delete, requestUri))
+                {
+                    try
+                    {
+                        using (var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        return new ApiResult(0, "HttpRequestException in DeleteNotificationAsync: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ApiResult(0, "Exception in DeleteNotificationAsync: " + ex.Message);
+                    }
+                }
+            }
+        }
+        
+        public sealed class ApiResult
+        {
+            public HttpStatusCode StatusCode { get; }
+            public string ResponseBody { get; }
+            public ApiResult(HttpStatusCode statusCode, string responseBody)
+            {
+                StatusCode = statusCode;
+                ResponseBody = responseBody;
+            }
+        }
+        
+        private static string Encode(string val)
+        {
+            return Uri.EscapeDataString(val ?? string.Empty);
+        }
+    }
+    public class AdemicoModelsV2
+    {
+        public class Pagination
+        {
+            public int Count { get; set; }
+            public int Page { get; set; }
+            public int PageSize { get; set; }
+        }
+        public class Root
+        {
+            public Pagination Pagination { get; set; }
+            public List<Notification> Notifications { get; set; }
+        }
+        public class Notification
+        {
+            [JsonPropertyName("eventType")]
+            public string EventType { get; set; }
+
+            [JsonPropertyName("notificationId")]
+            public int NotificationId { get; set; }
+
+            [JsonPropertyName("notificationDate")]
+            public DateTime NotificationDate { get; set; }
+
+            [JsonPropertyName("transmissionId")]
+            public string TransmissionId { get; set; }
+
+            [JsonPropertyName("sbdhInstanceIdentifier")]
+            public string SbdhInstanceIdentifier { get; set; }
+
+            [JsonPropertyName("documentId")]
+            public string DocumentId { get; set; }
+
+            [JsonPropertyName("peppolDocumentType")]
+            public string PeppolDocumentType { get; set; }
+
+            [JsonPropertyName("sender")]
+            public string Sender { get; set; }
+
+            [JsonPropertyName("receiver")]
+            public string Receiver { get; set; }
+
+            [JsonPropertyName("details")]
+            public List<NotificationDetail> Details { get; set; }
+
+            [JsonPropertyName("notificationType")]
+            public string NotificationType { get; set; }
+
+            public Notification()
+            {
+                Details = new List<NotificationDetail>();
+            }
+        }
+        public class NotificationDetail
+        {
+            [JsonPropertyName("code")]
+            public string Code { get; set; }
+
+            [JsonPropertyName("message")]
+            public string Message { get; set; }
+        }
+
+
+
+
+
+
+
+
+
+        // Other classes like VatResponse, ViesApproximate, Contact, LegalEntityDetails,
+        // PeppolIdentifier, PeppolRegistration, and InvoiceResponseClarification
+        // defined here as needed.
+        public class ViesApproximate
+        {
+            public string Name { get; set; }
+            public string Street { get; set; }
+            public string PostalCode { get; set; }
+            public string City { get; set; }
+            public string CompanyType { get; set; }
+            public int MatchName { get; set; }
+            public int MatchStreet { get; set; }
+            public int MatchPostalCode { get; set; }
+            public int MatchCity { get; set; }
+            public int MatchCompanyType { get; set; }
+        }        
+        public class Contact
+        {
+            public string ContactType { get; set; }
+            public string Name { get; set; }
+            public string PhoneNumber { get; set; }
+            public string Email { get; set; }
+        }
+        public class LegalEntityDetails
+        {
+            public bool PublishInPeppolDirectory { get; set; }
+            public string Name { get; set; }
+            public string CountryCode { get; set; }
+            public string GeographicalInformation { get; set; }
+            public string WebsiteUrl { get; set; }
+            public List<Contact> Contacts { get; set; }
+            public string AdditionalInformation { get; set; }
+        }
+        public class PeppolIdentifier
+        {
+            public string Scheme { get; set; }
+            public string Identifier { get; set; }
+        }
+        public class PeppolRegistration
+        {
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+            public List<string> SupportedDocuments { get; set; }
+            public bool PublishInSmp { get; set; }
+        }       
+
+        public class InvoiceResponseClarification
+        {
+            public string ClarificationCode { get; set; }
+            public string ClarificationType { get; set; }
+            public string Clarification { get; set; }
+        }        
     }
 }
