@@ -62,13 +62,22 @@ namespace MarSync.MarioMenu.Actions
 
             if (SharedGlobals.ApiModus == "PRODUCTIE")
             {
-                Text = "MarSync v3.0.4.0 [" + SharedGlobals.ActiveCompany + "]";
+                Text = "MarSync v3.0.4.0";
             }
             else
             {
-                Text = "MarSync v3.0.4.0 [" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.ApiModus;
+                Text = "MarSync v3.0.4.0 " + SharedGlobals.ApiModus;
             }
-            LabelActiveCompanyName.Text = SharedGlobals.CompanyName;
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                Text = Text + " (API V2)";
+            }
+            else
+            {
+                Text = Text + " (API V1)";
+            }
+
+            LabelActiveCompanyName.Text = "[" + SharedGlobals.ActiveCompany + "] " + SharedGlobals.CompanyName;
 
             httpCheck = new HttpClient(); // Initialize here
 
@@ -358,7 +367,7 @@ namespace MarSync.MarioMenu.Actions
                 }
                 else
                 {
-                    response = await AdemicoClientV1.CheckConnection(new HttpClient());
+                    response = await AdemicoClientV1.CheckConnectionV1(new HttpClient());
                 }                
                 if (!string.IsNullOrEmpty(response))
                 {
@@ -654,79 +663,142 @@ namespace MarSync.MarioMenu.Actions
         }
 
         async private void ButtonInvoiceReceivedResponse_Click(object sender, EventArgs e)
-        {
-            string selectedResponseCode =
+        {           
+
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                string selectedResponseCode =
                 ((KeyValuePair<string, string>)ComboBoxResponseCode.SelectedItem).Key;
-                        
-            var clarifications = new List<AdemicoModelsV1.InvoiceResponseClarification>();
-            if (selectedResponseCode == "AP" || selectedResponseCode == "PD")
-            {
-                clarifications = null;
-            }
-            else
-            {
-                string selectedClarificationCode =
-                ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
 
-                // Example clarification for rejection
-                var clarification = new AdemicoModelsV1.InvoiceResponseClarification
+                var clarifications = new List<AdemicoModelsV2.InvoiceResponseClarification>();
+                if (selectedResponseCode == "AP" || selectedResponseCode == "PD")
                 {
-                    ClarificationType = "OPStatusReason",
-                    ClarificationCode = selectedClarificationCode,
-                    Clarification = TextBoxClarification.Text
-                };
-                clarifications.Add(clarification);
-            }
-
-            string confirmMessage =
-                "Reactie verzenden naar leverancier\n\n" +
-                    $"Transmission ID: {TextBoxToAcceptOrRejectTransId.Text}\n" +
-                    $"Response Code: {selectedResponseCode} ({ComboBoxResponseCode.Text})\n" +
-                    $"Note: {TextBoxNote.Text}\n" +
-                        (clarifications != null && clarifications.Count > 0
-                            ? $"Clarification Code: {clarifications[0].ClarificationCode} ({ComboBoxClarificationCode.Text})\nClarification: {clarifications[0].Clarification}\n"
-                            : "") + "\n" +
-
-                "Weet u zeker dat u deze actie wilt uitvoeren?";
-            var confirmResult = MessageBox.Show(confirmMessage, "Bevestig bijwerken", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
-            if (confirmResult != DialogResult.Yes)
-            {
-                return; // User chose No, exit the method
-            }
-            
-            try
-            {
-                var result = await AdemicoClientV1.SendInvoiceResponseAsync(
-                    invoiceTransmissionId: TextBoxToAcceptOrRejectTransId.Text,  // "2278c90b96ea11f0a46406668988840f",
-                    responseCode: selectedResponseCode, // "AP" = Accepted, see your code table
-                    note: TextBoxNote.Text,
-                    effectiveDate: DateTime.UtcNow.ToString("yyyy-MM-dd"), // Optional, can be empty
-                    clarifications: clarifications  // or a list of InvoiceResponseClarification if needed
-                );
-
-                if (result != null)
-                {
-                    ToolStripStatusLabel.Text = "Document Response succesvol verzonden.";
-                    var deserializedString = JsonConvert.DeserializeObject(result.ResponseBody);
-                    RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
-                    MessageBox.Show(
-                        RichTextBoxResponses.Text,
-                        "Resultaat Verzenden Documentreactie",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
-                    );
+                    clarifications = null;
                 }
                 else
                 {
-                    ToolStripStatusLabel.Text = "Mislukt verzenden Documentreactie.";
-                    RichTextBoxResponses.Text = "";
+                    string selectedClarificationCode =
+                    ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
+
+                    // Example clarification for rejection
+                    var clarification = new AdemicoModelsV2.InvoiceResponseClarification
+                    {
+                        ClarificationType = "OPStatusReason",
+                        ClarificationCode = selectedClarificationCode,
+                        Clarification = TextBoxClarification.Text
+                    };
+                    clarifications.Add(clarification);
+                }
+
+                string confirmMessage =
+                    "Reactie verzenden naar leverancier\n\n" +
+                        $"Transmission ID: {TextBoxToAcceptOrRejectTransId.Text}\n" +
+                        $"Response Code: {selectedResponseCode} ({ComboBoxResponseCode.Text})\n" +
+                        $"Note: {TextBoxNote.Text}\n" +
+                            (clarifications != null && clarifications.Count > 0
+                                ? $"Clarification Code: {clarifications[0].ClarificationCode} ({ComboBoxClarificationCode.Text})\nClarification: {clarifications[0].Clarification}\n"
+                                : "") + "\n" +
+
+                    "Weet u zeker dat u deze actie wilt uitvoeren?";
+                var confirmResult = MessageBox.Show(confirmMessage, "Bevestig bijwerken", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                if (confirmResult != DialogResult.Yes)
+                {
+                    return; // User chose No, exit the method
+                }
+                MessageBox.Show("Still to do");
+
+                var result = await AdemicoClientV2.SendInvoiceResponseAsync(
+                       invoiceTransmissionId: "803828d52d4911ed85f512ef9c5638d0",
+                        responseCode: "AP",
+                        invoiceResponseId: "d4b52c6f1f0b11f1b23f0c3799f7d36b",
+                        note: "Invoice accepted for payment",
+                        effectiveDate: "2025-09-23",
+                        clarifications: null);
+
+                if (result.IsSuccess)
+                {
+                    MessageBox.Show("Invoice Response sent successfully!");
+                }
+                else
+                {
+                    MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
-            catch (Exception ex)
+            else
             {
-                ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
-                MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                string selectedResponseCode =
+                ((KeyValuePair<string, string>)ComboBoxResponseCode.SelectedItem).Key;
+
+                var clarifications = new List<AdemicoModelsV1.InvoiceResponseClarification>();
+                if (selectedResponseCode == "AP" || selectedResponseCode == "PD")
+                {
+                    clarifications = null;
+                }
+                else
+                {
+                    string selectedClarificationCode =
+                    ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
+
+                    // Example clarification for rejection
+                    var clarification = new AdemicoModelsV1.InvoiceResponseClarification
+                    {
+                        ClarificationType = "OPStatusReason",
+                        ClarificationCode = selectedClarificationCode,
+                        Clarification = TextBoxClarification.Text
+                    };
+                    clarifications.Add(clarification);
+                }
+
+                string confirmMessage =
+                    "Reactie verzenden naar leverancier\n\n" +
+                        $"Transmission ID: {TextBoxToAcceptOrRejectTransId.Text}\n" +
+                        $"Response Code: {selectedResponseCode} ({ComboBoxResponseCode.Text})\n" +
+                        $"Note: {TextBoxNote.Text}\n" +
+                            (clarifications != null && clarifications.Count > 0
+                                ? $"Clarification Code: {clarifications[0].ClarificationCode} ({ComboBoxClarificationCode.Text})\nClarification: {clarifications[0].Clarification}\n"
+                                : "") + "\n" +
+
+                    "Weet u zeker dat u deze actie wilt uitvoeren?";
+                var confirmResult = MessageBox.Show(confirmMessage, "Bevestig bijwerken", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
+                if (confirmResult != DialogResult.Yes)
+                {
+                    return; // User chose No, exit the method
+                }
+                try
+                {
+                    var result = await AdemicoClientV1
+                        .SendInvoiceResponseAsync(
+                            invoiceTransmissionId: TextBoxToAcceptOrRejectTransId.Text,  // "2278c90b96ea11f0a46406668988840f",
+                            responseCode: selectedResponseCode, // "AP" = Accepted, see your code table
+                            note: TextBoxNote.Text,
+                            effectiveDate: DateTime.UtcNow.ToString("yyyy-MM-dd"), // Optional, can be empty
+                            clarifications: clarifications  // or a list of InvoiceResponseClarification if needed
+                        );
+
+                    if (result != null)
+                    {
+                        ToolStripStatusLabel.Text = "Document Response succesvol verzonden.";
+                        var deserializedString = JsonConvert.DeserializeObject(result.ResponseBody);
+                        RichTextBoxResponses.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                        MessageBox.Show(
+                            RichTextBoxResponses.Text,
+                            "Resultaat Verzenden Documentreactie",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = "Mislukt verzenden Documentreactie.";
+                        RichTextBoxResponses.Text = "";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
+                    MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }                
         }
 
         private void RadioButtonAccept_CheckedChanged(object sender, EventArgs e)
@@ -1760,78 +1832,146 @@ namespace MarSync.MarioMenu.Actions
                 {
                     // If not found, call the API to retrieve the UBL invoice XML using the TransmissionId
                     // and save it in the "in" folder with the DocumentId as file name
-                    // Note: DocumentId may contain characters that are not allowed in file names, so we sanitize it                    
-                    string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-                    string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
-                    string accessToken = SharedGlobals.AdemicoAccessToken;
-                    string username = SharedGlobals.AdemicoUsername;
-                    string password = SharedGlobals.AdemicoPassword;
+                    // Note: DocumentId may contain characters that are not allowed in file names, so we sanitize it
 
                     string transmissionId = info.TransmissionId;
-                    string requestUrl = $"{ademicoUrl}/api/peppol/v1/invoices/{transmissionId}/ubl?accessToken={accessToken}";
 
-                    try
+                    if (SharedGlobals.AdemicoApiUsedV2)
                     {
-                        HttpClient client = new HttpClient();
-                        var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                        client.DefaultRequestHeaders.Authorization =
-                            new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                        try
+                        {   
+                            // With default REJECT policy
+                            // var result = await AdemicoClientV2.PeppolInvoiceReceiverV2.GetUblInvoiceAsync(transmissionId);
+                                                       
+                            // With ALLOW_WITH_WARNINGS policy
+                            var result = await AdemicoClientV2.PeppolInvoiceReceiver.GetUblInvoiceAsync(
+                                transmissionId,
+                                lossPolicy: "ALLOW_WITH_WARNINGS");
 
-                        // Accept XML
-                        client.DefaultRequestHeaders.Accept.Clear();
-                        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+                            string invoiceXml;
+                            if (result.IsSuccess)
+                            {
+                                invoiceXml = result.ResponseBody;
+                                string outcome = result.ConversionOutcome; // "original" or "converted"
+                                Console.WriteLine($"Invoice retrieved ({outcome})");
+                            }
+                            else
+                            {
+                                MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return;
+                            }
+                            
+                            // Parse documentId directly from the XML string (no temp file needed)
+                            string tempFile = Path.GetTempFileName();
+                            File.WriteAllText(tempFile, invoiceXml);
+                            string documentId = MarHelpers.ReadUBLInvoice(tempFile, false, true, false, false, false).ToUpper();
+                            File.Delete(tempFile);
 
-                        // Make the GET request
-                        HttpResponseMessage response = await client.GetAsync(requestUrl);
-                        response.EnsureSuccessStatusCode();
-                        
-                        // Read the content
-                        string invoiceXml = await response.Content.ReadAsStringAsync();
+                            string sanitizedDocumentIdForSaving = SanitizeFileName(documentId);
 
-                        // Parse documentId directly from the XML string (no temp file needed)
-                        string tempFile = Path.GetTempFileName();
-                        File.WriteAllText(tempFile, invoiceXml);
-                        string documentId = MarHelpers.ReadUBLInvoice(tempFile, false, true, false, false, false).ToUpper();
-                        File.Delete(tempFile);
+                            // Save directly to peppol\in
+                            string destinationFolder = Path.Combine(
+                                SharedGlobals.MimDataLocation,
+                                SharedGlobals.ActiveCompany,
+                                "peppol",
+                                "in");
 
-                        string sanitizedDocumentIdForSaving = SanitizeFileName(documentId);
+                            Directory.CreateDirectory(destinationFolder);
 
-                        // Save directly to peppol\in
-                        string destinationFolder = Path.Combine(
-                            SharedGlobals.MimDataLocation,
-                            SharedGlobals.ActiveCompany,
-                            "peppol",
-                            "in");
+                            string destinationPath = Path.Combine(destinationFolder, sanitizedDocumentIdForSaving + ".xml");
+                            File.WriteAllText(destinationPath, invoiceXml);
 
-                        Directory.CreateDirectory(destinationFolder);
+                            // Checking document hash and registering in the database to detect manual changes
+                            // After destinationPath is determined and File.WriteAllText(destinationPath, invoiceXml) is done:
+                            var repo = new PeppolDocumentRepository(SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation);
+                            // 1) First try: does the document already exist with the same hash?
+                            repo.UpdateReceivedOnIfHashMatches(documentId, destinationPath);
+                            // 2) If no existing hash or mismatch, simply (re)register
+                            repo.RegisterIncomingDocument(documentId, destinationPath);
 
-                        string destinationPath = Path.Combine(destinationFolder, sanitizedDocumentIdForSaving + ".xml");
-                        File.WriteAllText(destinationPath, invoiceXml);
+                            ToolStripStatusLabel.Text = "UBL Invoice " + sanitizedDocumentIdForSaving + ".XML succesvol opgehaald en opgeslagen.";
+                            Console.WriteLine("UBL Invoice succesvol opgehaald en opgeslagen op: " + destinationPath);
+                            titanicDeckChairs++;
+                            totalInMapInToBook++;
 
-                        // Checking document hash and registering in the database to detect manual changes
-                        // After destinationPath is determined and File.WriteAllText(destinationPath, invoiceXml) is done:
-                        var repo = new PeppolDocumentRepository(SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation); // e.g., path to your Access‑MDB
-                        // 1) First try: does the document already exist with the same hash?
-                        repo.UpdateReceivedOnIfHashMatches(documentId, destinationPath);
-                        // 2) If no existing hash or mismatch, simply (re)register
-                        repo.RegisterIncomingDocument(documentId, destinationPath);
-
-                        ToolStripStatusLabel.Text = "UBL Invoice " + sanitizedDocumentIdForSaving + ".XML succesvol opgehaald en opgeslagen.";
-                        Console.WriteLine("UBL Invoice succesvol opgehaald en opgeslagen op: " + destinationPath);
-                        titanicDeckChairs++;
-                        totalInMapInToBook++;
-
-                        string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
-                        isSeller: false,
-                        sourceFolderPathAndFile: destinationPath,
-                        cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
+                            string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
+                                isSeller: false,
+                                sourceFolderPathAndFile: destinationPath,
+                                cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception retrieving invoice: {ex.GetType().Name} - {ex.Message}");
+                            MessageBox.Show($"Exception: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            ToolStripStatusLabel.Text = "Klaar";
+                        }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        MessageBox.Show(ex.Message);
-                        ToolStripStatusLabel.Text = "Klaar";
+                        try
+                        {
+                            // Call the updated API function instead of building the request manually
+                            var result = await AdemicoClientV1.PeppolInvoiceReceiver.GetUblInvoiceAsync(transmissionId);
+
+                            if (!result.IsSuccess || result.StatusCode != HttpStatusCode.OK)
+                            {
+                                string errorMsg = result.ResponseBody ?? $"Failed to retrieve invoice: HTTP {(int)result.StatusCode}";
+                                MessageBox.Show($"Error retrieving UBL invoice: {errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                ToolStripStatusLabel.Text = "Klaar";
+                                return;
+                            }
+
+                            string invoiceXml = result.ResponseBody;
+
+                            // Parse documentId directly from the XML string (no temp file needed)
+                            string tempFile = Path.GetTempFileName();
+                            File.WriteAllText(tempFile, invoiceXml);
+                            string documentId = MarHelpers.ReadUBLInvoice(tempFile, false, true, false, false, false).ToUpper();
+                            File.Delete(tempFile);
+
+                            string sanitizedDocumentIdForSaving = SanitizeFileName(documentId);
+
+                            // Save directly to peppol\in
+                            string destinationFolder = Path.Combine(
+                                SharedGlobals.MimDataLocation,
+                                SharedGlobals.ActiveCompany,
+                                "peppol",
+                                "in");
+
+                            Directory.CreateDirectory(destinationFolder);
+
+                            string destinationPath = Path.Combine(destinationFolder, sanitizedDocumentIdForSaving + ".xml");
+                            File.WriteAllText(destinationPath, invoiceXml);
+
+                            // Checking document hash and registering in the database to detect manual changes
+                            // After destinationPath is determined and File.WriteAllText(destinationPath, invoiceXml) is done:
+                            var repo = new PeppolDocumentRepository(SharedGlobals.MimDataLocation + SharedGlobals.MarntMdvLocation);
+                            // 1) First try: does the document already exist with the same hash?
+                            repo.UpdateReceivedOnIfHashMatches(documentId, destinationPath);
+                            // 2) If no existing hash or mismatch, simply (re)register
+                            repo.RegisterIncomingDocument(documentId, destinationPath);
+
+                            ToolStripStatusLabel.Text = "UBL Invoice " + sanitizedDocumentIdForSaving + ".XML succesvol opgehaald en opgeslagen.";
+                            Console.WriteLine("UBL Invoice succesvol opgehaald en opgeslagen op: " + destinationPath);
+                            titanicDeckChairs++;
+                            totalInMapInToBook++;
+
+                            string resultWeekFolderCopy = CopyPeppolFileToWeekFolderOnCloudDrive(
+                                isSeller: false,
+                                sourceFolderPathAndFile: destinationPath,
+                                cloudFolderPath: SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\archive");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception retrieving invoice: {ex.GetType().Name} - {ex.Message}");
+                            MessageBox.Show($"Exception: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            ToolStripStatusLabel.Text = "Klaar";
+                        }
+
                     }
+
+
+                    
                 }
                 else
                 {
@@ -2507,8 +2647,7 @@ namespace MarSync.MarioMenu.Actions
         }
 
         private async void ButtonMyStatusReport_Click(object sender, EventArgs e)
-        {               
-            // Get the active company's KBO number
+        {
             string activeCompanyKBO = SharedGlobals.CompanyKBONumber;
             string activeCompanyName = SharedGlobals.CompanyName;
 
@@ -2524,37 +2663,47 @@ namespace MarSync.MarioMenu.Actions
                 ToolStripStatusLabel.Text = "Een ogenblik a.u.b. Rapport genereren...";
                 Application.DoEvents();
 
-                // Get all notifications for server account (from FormAdminPeppolActions logic)
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Starting status report generation...");
+                Console.WriteLine($"API Version V2: {SharedGlobals.AdemicoApiUsedV2}");
+
                 var jsonResponse = "";
                 if (SharedGlobals.AdemicoApiUsedV2)
                 {
-                    jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
-                    transmissionId: "",
-                    documentId: "",
-                    eventType: "",
-                    peppolDocumentType: "",
-                    sender: "",
-                    receiver: "",
-                    startDateTime: "",
-                    endDateTime: "",
-                    page: "",
-                    pageSize: "250");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Calling GetNotificationsAsync v2 with page=0, pageSize=250");
 
+                    // Try with minimal parameters first
+                    jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
+                        transmissionId: null,
+                        documentId: null,
+                        eventType: null,
+                        peppolDocumentType: null,
+                        sender: null,
+                        receiver: null,
+                        startDateTime: null,
+                        endDateTime: null,
+                        page: "0",
+                        pageSize: "250",
+                        sort: null);
                 }
                 else
                 {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Calling GetNotificationsAsync v1 with page=0, pageSize=250");
+
                     jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
-                    transmissionId: "",
-                    documentId: "",
-                    eventType: "",
-                    peppolDocumentType: "",
-                    sender: "",
-                    receiver: "",
-                    startDateTime: "",
-                    endDateTime: "",
-                    page: "",
-                    pageSize: "250");
+                        transmissionId: null,
+                        documentId: null,
+                        eventType: null,
+                        peppolDocumentType: null,
+                        sender: null,
+                        receiver: null,
+                        startDateTime: null,
+                        endDateTime: null,
+                        page: "0",
+                        pageSize: "250");
                 }
+
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response received: {(jsonResponse?.Length ?? 0)} chars");
+
                 if (jsonResponse == null || string.IsNullOrEmpty(jsonResponse))
                 {
                     MessageBox.Show("Geen notificaties gevonden.", "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -2564,14 +2713,12 @@ namespace MarSync.MarioMenu.Actions
                 var deserializedString = JsonConvert.DeserializeObject(jsonResponse);
                 string allNotifications = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
 
-                // Generate HTML report for the active company
                 string reportHtml = await GenerateCompanyStatusReport(
                     activeCompanyKBO,
                     activeCompanyName,
                     allNotifications
                 );
 
-                // Display the HTML in a browser window
                 var viewer = new FormPeppolViewer
                 {
                     Text = $"Status Rapport - {activeCompanyName}"
@@ -2579,8 +2726,25 @@ namespace MarSync.MarioMenu.Actions
                 viewer.LoadHtmlContent(reportHtml);
                 viewer.Show();
             }
+            catch (HttpRequestException httpEx)
+            {
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] HttpRequestException: {httpEx.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Stack Trace:\n{httpEx.StackTrace}");
+                if (httpEx.InnerException != null)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {httpEx.InnerException.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Stack Trace:\n{httpEx.InnerException.StackTrace}");
+                }
+                MessageBox.Show($"HTTP Fout: {httpEx.Message}\n\nStackTrace:\n{httpEx.StackTrace}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception: {ex.GetType().Name} - {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Stack Trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                }
                 MessageBox.Show($"Fout bij ophalen status rapport: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
@@ -2839,81 +3003,94 @@ namespace MarSync.MarioMenu.Actions
 
         private async Task<string> ViesLookUpName(string companyId)
         {
-            string countryCode;
-            string vatNumberEU;
-
-            if (companyId.Substring(0, 5) == "0208:")
+            // Skip VIES lookup for non-VAT schemes
+            if (companyId.StartsWith("0088:") ||
+                string.IsNullOrWhiteSpace(companyId))
             {
-                countryCode = "BE";
-                vatNumberEU = countryCode + companyId.Substring(5);
+                return companyId;  // Return as-is for non-VAT schemes
             }
-            else if (companyId.Substring(0, 5) == "9925:")
+
+            string countryCode;
+            string vatNumber;
+
+            if (companyId.StartsWith("0208:"))
             {
                 countryCode = "BE";
-                vatNumberEU = companyId.Substring(5);
+                vatNumber = companyId.Substring(5);  // Just the number, no country code
+            }
+            else if (companyId.StartsWith("9925:"))
+            {
+                countryCode = "BE";
+                vatNumber = companyId.Substring(5);  // Just the number
+            }
+            else if (companyId.Length > 2)
+            {
+                countryCode = companyId.Substring(0, 2);
+                vatNumber = companyId.Substring(2);  // Just the number, no country code
             }
             else
             {
-                countryCode = companyId.Substring(0, 2);
-                vatNumberEU = companyId.Substring(2);
+                return companyId;  // Can't parse, return as-is
             }
 
-            string url = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/" + countryCode + "/vat/" + vatNumberEU;
+            string url = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/" + countryCode + "/vat/" + vatNumber;
+
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES Lookup: {url}");
 
             try
             {
-                HttpResponseMessage response = await httpCheck.GetAsync(url); // Use the HttpClient instance
-                response.EnsureSuccessStatusCode(); // Throws if not successful
+                HttpResponseMessage response = await httpCheck.GetAsync(url);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES returned HTTP {(int)response.StatusCode}");
+                    return companyId;
+                }
+
                 string responseContent = await response.Content.ReadAsStringAsync();
 
-                // Work around HTML or non‑JSON error pages (e.g. "Server temporarily unavailable")
                 if (string.IsNullOrWhiteSpace(responseContent))
                 {
                     return companyId;
                 }
 
-                // Quick check: must look like JSON (start with { or [)
                 char firstNonWs = responseContent.SkipWhile(char.IsWhiteSpace).FirstOrDefault();
                 if (firstNonWs != '{' && firstNonWs != '[')
                 {
-                    // Not JSON, probably HTML error page
-                    Console.WriteLine("VIES returned non‑JSON content");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES returned non-JSON content");
                     return companyId;
                 }
 
-                // Deserialize into VatResponse object
-                AdemicoModelsV1.VatResponse data;
                 try
                 {
-                    data = JsonConvert.DeserializeObject<AdemicoModelsV1.VatResponse>(responseContent);
+                    AdemicoModelsV1.VatResponse data = JsonConvert.DeserializeObject<AdemicoModelsV1.VatResponse>(responseContent);
+
+                    if (data != null && data.IsValid && !string.IsNullOrWhiteSpace(data.Name))
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES found: {data.Name}");
+                        return ToTitleCase(data.Name);
+                    }
+
+                    return companyId;
                 }
                 catch (Newtonsoft.Json.JsonException ex)
                 {
-                    // JSON is invalid or doesn't match VatResponse
-                    Console.WriteLine("Error deserializing VIES response: " + ex.Message);
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Error deserializing VIES response: {ex.Message}");
                     return companyId;
                 }
-
-                // Access fields
-                if (data != null && data.IsValid)
-                {
-                    return ToTitleCase(data.Name ?? string.Empty);
-                }
-
-                return companyId;
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Request error: {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES HTTP error: {ex.Message}");
                 return companyId;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected VIES error: {ex.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES unexpected error: {ex.GetType().Name} - {ex.Message}");
                 return companyId;
             }
         }
-        
+
         // Utility method to convert a string to title case
         public static string ToTitleCase(string input)
         {

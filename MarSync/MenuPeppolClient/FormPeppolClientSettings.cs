@@ -130,6 +130,7 @@ namespace MarSync.MenuPeppolClient
             _isAdmin = Properties.Settings.Default.IsAdmin;
             if (_isAdmin)
             {
+                GroupBoxAPI.Enabled = true;
                 CheckBoxIsAdmin.Checked = true;
                 CheckBoxIsAdmin.Enabled = false;
             }
@@ -194,6 +195,19 @@ namespace MarSync.MenuPeppolClient
                 TextBoxIsAdminPassword.Visible = false;
                 ButtonValidate.Visible = false;
             }            
+        }
+
+        private void RadioButtonV2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (RadioButtonV2.Checked)
+            {
+                SharedGlobals.AdemicoApiUsedV2 = true;
+                Properties.Settings.Default.Save();
+            } else
+            {
+                SharedGlobals.AdemicoApiUsedV2 = false;
+                Properties.Settings.Default.Save();
+            }
         }
     }
 }

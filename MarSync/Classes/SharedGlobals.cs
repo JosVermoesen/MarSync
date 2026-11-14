@@ -38,9 +38,11 @@
             PeppolOutFiles = 0;
 
             ApiModus = "TESTMODE";
+
             AdemicoApiUrlV1 = "";
             AdemicoApiUrlV2 = "";
             AdemicoApiUsedV2 = false;
+
             AdemicoAccessToken = "";
             AdemicoUsername = "";
             AdemicoPassword = "";

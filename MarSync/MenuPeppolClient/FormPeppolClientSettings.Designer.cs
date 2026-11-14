@@ -41,8 +41,8 @@
             this.TextBoxIsAdminPassword = new System.Windows.Forms.TextBox();
             this.CheckBoxIsAdmin = new System.Windows.Forms.CheckBox();
             this.GroupBoxAPI = new System.Windows.Forms.GroupBox();
-            this.RadioButtonV1 = new System.Windows.Forms.RadioButton();
             this.RadioButtonV2 = new System.Windows.Forms.RadioButton();
+            this.RadioButtonV1 = new System.Windows.Forms.RadioButton();
             this.GroupBoxAPI.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -167,17 +167,6 @@
             this.GroupBoxAPI.TabStop = false;
             this.GroupBoxAPI.Text = "API Versie";
             // 
-            // RadioButtonV1
-            // 
-            this.RadioButtonV1.AutoSize = true;
-            this.RadioButtonV1.Location = new System.Drawing.Point(291, 19);
-            this.RadioButtonV1.Name = "RadioButtonV1";
-            this.RadioButtonV1.Size = new System.Drawing.Size(46, 17);
-            this.RadioButtonV1.TabIndex = 0;
-            this.RadioButtonV1.TabStop = true;
-            this.RadioButtonV1.Text = "1.13";
-            this.RadioButtonV1.UseVisualStyleBackColor = true;
-            // 
             // RadioButtonV2
             // 
             this.RadioButtonV2.AutoSize = true;
@@ -188,6 +177,18 @@
             this.RadioButtonV2.TabStop = true;
             this.RadioButtonV2.Text = "2.x";
             this.RadioButtonV2.UseVisualStyleBackColor = true;
+            this.RadioButtonV2.CheckedChanged += new System.EventHandler(this.RadioButtonV2_CheckedChanged);
+            // 
+            // RadioButtonV1
+            // 
+            this.RadioButtonV1.AutoSize = true;
+            this.RadioButtonV1.Location = new System.Drawing.Point(291, 19);
+            this.RadioButtonV1.Name = "RadioButtonV1";
+            this.RadioButtonV1.Size = new System.Drawing.Size(46, 17);
+            this.RadioButtonV1.TabIndex = 0;
+            this.RadioButtonV1.TabStop = true;
+            this.RadioButtonV1.Text = "1.13";
+            this.RadioButtonV1.UseVisualStyleBackColor = true;
             // 
             // FormPeppolClientSettings
             // 

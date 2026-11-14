@@ -21,7 +21,7 @@ namespace MarSync
         static readonly string username = SharedGlobals.AdemicoUsername;
         static readonly string password = SharedGlobals.AdemicoPassword;
 
-        public static async Task<string> CheckConnection(HttpClient client)
+        public static async Task<string> CheckConnectionV1(HttpClient client)
         {
             string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/tools/connectivity"
                                 + "?accessToken=" + Uri.EscapeDataString(accessToken);
@@ -230,14 +230,6 @@ namespace MarSync
                 }
             }
         }
-
-
-
-
-
-
-
-
         public static class PeppolInvoiceSender
         {
             public sealed class ApiResult
@@ -299,7 +291,207 @@ namespace MarSync
                 }
             }
         }
-        
+        public static class PeppolInvoiceReceiver
+        {
+            public sealed class ApiResult
+            {
+                public HttpStatusCode StatusCode { get; }
+                public string ResponseBody { get; }
+
+                public ApiResult(HttpStatusCode statusCode, string responseBody)
+                {
+                    StatusCode = statusCode;
+                    ResponseBody = responseBody;
+                }
+
+                public ApiResult(int statusCode, string responseBody)
+                {
+                    StatusCode = (HttpStatusCode)statusCode;
+                    ResponseBody = responseBody;
+                }
+
+                public bool IsSuccess => StatusCode == HttpStatusCode.OK;
+            }
+
+            public static async Task<ApiResult> GetUblInvoiceAsync(
+                string transmissionId,
+                CancellationToken cancellationToken = default)
+            {
+                // Corrected endpoint to match Postman definition
+                string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/invoices/" + Uri.EscapeDataString(transmissionId) + "/ubl"
+                                    + "?accessToken=" + Uri.EscapeDataString(accessToken);
+
+                int requestCounter = SharedGlobals.RequestCounter + 1;
+                SharedGlobals.RequestCounter = requestCounter;
+
+                using (var httpClient = new HttpClient())
+                {
+                    var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                    httpClient.DefaultRequestHeaders.Accept.Clear();
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+
+                    try
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET invoice {transmissionId}");
+
+                        using (var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice retrieved");
+                            }
+                            else if (!string.IsNullOrWhiteSpace(body))
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                            }
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "HttpRequestException in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Request cancelled in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "Exception in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Sends an Invoice Response (e.g., accept/reject) for a received Peppol invoice back to the seller.
+        /// </summary>
+        public static async Task<ApiResult> SendInvoiceResponseAsync(
+            string invoiceTransmissionId,
+            string responseCode,
+            string note,
+            string effectiveDate,
+            List<InvoiceResponseClarification> clarifications = null,
+            CancellationToken cancellationToken = default)
+        {
+            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/invoice-responses"
+                                + "?accessToken=" + Uri.EscapeDataString(accessToken);
+
+            var requestObj = new InvoiceResponseRequest
+            {
+                InvoiceTransmissionId = invoiceTransmissionId,
+                ResponseCode = responseCode,
+                Note = note,
+                EffectiveDate = effectiveDate,
+                InvoiceClarifications = clarifications
+            };
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            string json = JsonSerializer.Serialize(requestObj, jsonOptions);
+
+            int requestCounter = SharedGlobals.RequestCounter + 1;
+            SharedGlobals.RequestCounter = requestCounter;
+
+            using (var httpClient = new HttpClient())
+            {
+                var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    try
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
+
+                        using (var response = await httpClient.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice Response scheduled for delivery");
+                            }
+                            else if (!string.IsNullOrWhiteSpace(body))
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                            }
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "HttpRequestException in SendInvoiceResponseAsyncV1: " + ex.Message);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Request cancelled in SendInvoiceResponseAsyncV1: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "Exception in SendInvoiceResponseAsyncV1: " + ex.Message);
+                    }
+                }
+            }
+        }
+        public sealed class ApiResult
+        {
+            public HttpStatusCode StatusCode { get; }
+            public string ResponseBody { get; }
+            public ApiResult(HttpStatusCode statusCode, string responseBody)
+            {
+                StatusCode = statusCode;
+                ResponseBody = responseBody;
+            }
+        }
+        private static string Encode(string val)
+        {
+            return Uri.EscapeDataString(val ?? string.Empty);
+        }
+
+
+
+
+
         public sealed class LegalEntityResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -310,7 +502,6 @@ namespace MarSync
                 ResponseBody = responseBody;
             }
         }
-
         public static async Task<LegalEntityResult> GetPeppolRegistrationAsync(
                 string country,
                 string peppolRegistrationScheme,
@@ -372,7 +563,6 @@ namespace MarSync
                 }
             }
         }
-
         public static async Task<LegalEntityResult> GetLegalEntitiesAsync(
             string legalEntityId,
             string name,
@@ -430,19 +620,6 @@ namespace MarSync
                 }
             }
         }
-
-        
-        public sealed class ApiResult
-        {
-            public HttpStatusCode StatusCode { get; }
-            public string ResponseBody { get; }
-            public ApiResult(HttpStatusCode statusCode, string responseBody)
-            {
-                StatusCode = statusCode;
-                ResponseBody = responseBody;
-            }
-        }
-
         public static async Task<ApiResult> CreateOrRegisterLegalEntityAsync(
             CreateLegalEntityModel request,
             CancellationToken cancellationToken = default)
@@ -489,74 +666,7 @@ namespace MarSync
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Sends an Invoice Response (e.g., accept/reject) for a received Peppol invoice back to the seller.
-        /// </summary>
-        public static async Task<ApiResult> SendInvoiceResponseAsync(
-            string invoiceTransmissionId,
-            string responseCode,
-            string note,
-            string effectiveDate,
-            List<InvoiceResponseClarification> clarifications = null,
-            CancellationToken cancellationToken = default)
-        {
-            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v1/invoice-responses"
-                                + "?accessToken=" + Uri.EscapeDataString(accessToken);
-
-            var requestObj = new InvoiceResponseRequest
-            {
-                InvoiceTransmissionId = invoiceTransmissionId,
-                ResponseCode = responseCode,
-                Note = note,
-                EffectiveDate = effectiveDate,
-                InvoiceClarifications = clarifications
-            };
-
-            var jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            };
-            string json = JsonSerializer.Serialize(requestObj, jsonOptions);
-
-            using (var http = new HttpClient())
-            {
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                http.DefaultRequestHeaders.Accept.Clear();
-                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
-                {
-                    try
-                    {
-                        using (var response = await http.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
-                        {
-                            string body = response.Content == null
-                                ? null
-                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                            return new ApiResult(response.StatusCode, body);
-                        }
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        return new ApiResult(0, "HttpRequestException in SendInvoiceResponseAsync: " + ex.Message);
-                    }
-                    catch (Exception ex)
-                    {
-                        return new ApiResult(0, "Exception in SendInvoiceResponseAsync: " + ex.Message);
-                    }
-                }
-            }
-        }
-
-        private static string Encode(string val)
-        {
-            return Uri.EscapeDataString(val ?? string.Empty);
-        }
+        }        
     }
     public class AdemicoModelsV1
     {
@@ -1119,22 +1229,309 @@ namespace MarSync
                 }
             }
         }
-
-
-
-
-
-        public sealed class ApiResult
+        public static class PeppolInvoiceReceiver
         {
-            public HttpStatusCode StatusCode { get; }
-            public string ResponseBody { get; }
+            public sealed class ApiResult
+            {
+                public HttpStatusCode StatusCode { get; }
+                public string ResponseBody { get; }
+                public string ConversionOutcome { get; }
+
+                public ApiResult(HttpStatusCode statusCode, string responseBody, string conversionOutcome = null)
+                {
+                    StatusCode = statusCode;
+                    ResponseBody = responseBody;
+                    ConversionOutcome = conversionOutcome; // "original" or "converted"
+                }
+
+                public ApiResult(int statusCode, string responseBody, string conversionOutcome = null)
+                {
+                    StatusCode = (HttpStatusCode)statusCode;
+                    ResponseBody = responseBody;
+                    ConversionOutcome = conversionOutcome;
+                }
+
+                public bool IsSuccess => StatusCode == HttpStatusCode.OK;
+            }
+
+            /// <summary>
+            /// Get a sent or received Invoice/Credit Note in UBL format.
+            /// Stored UBL is returned unchanged; supported CII and Factur-X invoices are converted to UBL.
+            /// </summary>
+            /// <param name="transmissionId">The transmission ID of the invoice/credit note</param>
+            /// <param name="lossPolicy">Optional policy for conversion (REJECT or ALLOW_WITH_WARNINGS). Default is REJECT.</param>
+            /// <param name="cancellationToken">Cancellation token</param>
+            /// <returns>ApiResult containing the UBL invoice XML and conversion outcome</returns>
+            public static async Task<ApiResult> GetUblInvoiceAsync(
+                string transmissionId,
+                string lossPolicy = "REJECT",
+                CancellationToken cancellationToken = default)
+            {
+                string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/invoices/" + Uri.EscapeDataString(transmissionId) + "/ubl";
+
+                // Add lossPolicy query parameter if provided
+                if (!string.IsNullOrWhiteSpace(lossPolicy))
+                {
+                    requestUri += "?lossPolicy=" + Uri.EscapeDataString(lossPolicy);
+                }
+
+                int requestCounter = SharedGlobals.RequestCounter + 1;
+                SharedGlobals.RequestCounter = requestCounter;
+
+                using (var httpClient = new HttpClient())
+                {
+                    var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                    httpClient.DefaultRequestHeaders.Accept.Clear();
+                    httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
+
+                    // Add accessToken header (v2 requirement - header only, not query parameter)
+                    if (!string.IsNullOrEmpty(accessToken))
+                    {
+                        httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                    }
+
+                    try
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET invoice {transmissionId} (lossPolicy: {lossPolicy})");
+
+                        using (var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+
+                            // Get conversion outcome header if present
+                            string conversionOutcome = null;
+                            if (response.Headers.TryGetValues("X-ADEMICO-CONVERSION-OUTCOME", out var values))
+                            {
+                                conversionOutcome = string.Join(",", values);
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Conversion outcome: {conversionOutcome}");
+                            }
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice retrieved");
+                                return new ApiResult(response.StatusCode, body, conversionOutcome);
+                            }
+
+                            // Error response (typically JSON)
+                            if (!string.IsNullOrWhiteSpace(body))
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                            }
+
+                            return new ApiResult(response.StatusCode, body, conversionOutcome);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "HttpRequestException in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Request cancelled in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "Exception in GetUblInvoiceAsync: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+
+        public static async Task<ApiResult> SendInvoiceResponseAsync(
+            string invoiceTransmissionId,
+            string responseCode,
+            string invoiceResponseId,
+            string note,
+            string effectiveDate,
+            List<InvoiceResponseClarification> clarifications = null,
+            CancellationToken cancellationToken = default)
+        {
+            string requestUri = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/invoice-responses";
+
+            var requestObj = new InvoiceResponseRequest
+            {
+                InvoiceTransmissionId = invoiceTransmissionId,
+                ResponseCode = responseCode,
+                InvoiceResponseId = invoiceResponseId,
+                Note = note,
+                EffectiveDate = effectiveDate,
+                InvoiceClarifications = clarifications
+            };
+
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            string json = JsonSerializer.Serialize(requestObj, jsonOptions);
+
+            int requestCounter = SharedGlobals.RequestCounter + 1;
+            SharedGlobals.RequestCounter = requestCounter;
+
+            using (var httpClient = new HttpClient())
+            {
+                var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                httpClient.DefaultRequestHeaders.Accept.Clear();
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Add accessToken header (v2 requirement - header only, not query parameter)
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                }
+
+                using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    try
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
+
+                        using (var response = await httpClient.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice Response accepted for delivery");
+                                if (!string.IsNullOrWhiteSpace(body))
+                                {
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
+                                }
+                            }
+                            else if (!string.IsNullOrWhiteSpace(body))
+                            {
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                            }
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "HttpRequestException in SendInvoiceResponseAsyncV2: " + ex.Message);
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Request cancelled in SendInvoiceResponseAsyncV2: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                        }
+                        return new ApiResult(0, "Exception in SendInvoiceResponseAsyncV2: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        // Request Model for v2
+        public class InvoiceResponseRequest
+        {
+            [JsonPropertyName("invoiceTransmissionId")]
+            public string InvoiceTransmissionId { get; set; }
+
+            [JsonPropertyName("responseCode")]
+            public string ResponseCode { get; set; }
+
+            [JsonPropertyName("invoiceResponseId")]
+            public string InvoiceResponseId { get; set; }
+
+            [JsonPropertyName("note")]
+            public string Note { get; set; }
+
+            [JsonPropertyName("effectiveDate")]
+            public string EffectiveDate { get; set; }
+
+            [JsonPropertyName("invoiceClarifications")]
+            public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
+        }
+
+        // Response Model for v2
+        public class InvoiceResponseResult
+        {
+            [JsonPropertyName("transmissionId")]
+            public string TransmissionId { get; set; }
+
+            [JsonPropertyName("documentId")]
+            public string DocumentId { get; set; }
+
+            [JsonPropertyName("documentTypeEnum")]
+            public string DocumentTypeEnum { get; set; }
+
+            [JsonPropertyName("sender")]
+            public string Sender { get; set; }
+
+            [JsonPropertyName("receiver")]
+            public string Receiver { get; set; }
+
+            [JsonPropertyName("sbdhInstanceIdentifier")]
+            public string SbdhInstanceIdentifier { get; set; }
+
+            [JsonPropertyName("c5SubmissionResult")]
+            public C5SubmissionResult C5SubmissionResult { get; set; }
+        }
+
+        public class C5SubmissionResult
+        {
+            [JsonPropertyName("status")]
+            public string Status { get; set; }
+
+            [JsonPropertyName("details")]
+            public object[] Details { get; set; }
+        }
+
+
+        public class ApiResult
+        {
+            public HttpStatusCode StatusCode { get; set; }
+            public string ResponseBody { get; set; }
+
             public ApiResult(HttpStatusCode statusCode, string responseBody)
             {
                 StatusCode = statusCode;
                 ResponseBody = responseBody;
             }
+
+            public ApiResult(int statusCode, string responseBody)
+            {
+                StatusCode = (HttpStatusCode)statusCode;
+                ResponseBody = responseBody;
+            }
+
+            public bool IsSuccess => StatusCode == HttpStatusCode.OK;
         }
-        
+
         private static string Encode(string val)
         {
             return Uri.EscapeDataString(val ?? string.Empty);

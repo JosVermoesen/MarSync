@@ -87,7 +87,7 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
             Application.DoEvents();
 
-            var response = await AdemicoClientV1.CheckConnection(new HttpClient());
+            var response = await AdemicoClientV1.CheckConnectionV1(new HttpClient());
             if (response != null)
             {
                 ToolStripStatusLabel.Text = response;
