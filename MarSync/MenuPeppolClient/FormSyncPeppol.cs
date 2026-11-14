@@ -706,23 +706,26 @@ namespace MarSync.MarioMenu.Actions
                     return; // User chose No, exit the method
                 }
                 MessageBox.Show("Still to do");
+                return;
 
-                var result = await AdemicoClientV2.SendInvoiceResponseAsync(
-                       invoiceTransmissionId: "803828d52d4911ed85f512ef9c5638d0",
-                        responseCode: "AP",
-                        invoiceResponseId: "d4b52c6f1f0b11f1b23f0c3799f7d36b",
-                        note: "Invoice accepted for payment",
-                        effectiveDate: "2025-09-23",
-                        clarifications: null);
+                //// Example usage of the V2 API to send an invoice response
+                //// Still to do: Implement the actual sending logic using the values from the form
+                //var result = await AdemicoClientV2.SendInvoiceResponseAsync(
+                //       invoiceTransmissionId: "803828d52d4911ed85f512ef9c5638d0",
+                //        responseCode: "AP",
+                //        invoiceResponseId: "d4b52c6f1f0b11f1b23f0c3799f7d36b",
+                //        note: "Invoice accepted for payment",
+                //        effectiveDate: "2025-09-23",
+                //        clarifications: null);
 
-                if (result.IsSuccess)
-                {
-                    MessageBox.Show("Invoice Response sent successfully!");
-                }
-                else
-                {
-                    MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                //if (result.IsSuccess)
+                //{
+                //    MessageBox.Show("Invoice Response sent successfully!");
+                //}
+                //else
+                //{
+                //    MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //}
             }
             else
             {
@@ -3450,7 +3453,7 @@ namespace MarSync.MarioMenu.Actions
 
                         if (rsDoc.EOF)
                         {
-                            Console.WriteLine($"SetBuyersBookStatusRS: No document found - supplierId={supplierId}, docRef={expectedDocRef}, documentId={documentId}, paymentId={paymentId}");
+                            Console.WriteLine($"SetBuyersBookStatusRS: Document to book - supplierId={supplierId}, docRef={expectedDocRef}, documentId={documentId}, paymentId={paymentId}");
                             rsDoc.Close();
                             return false;
                         }
