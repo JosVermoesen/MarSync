@@ -666,7 +666,7 @@ namespace MarSync
                     }
                 }
             }
-        }        
+        }
     }
     public class AdemicoModelsV1
     {
@@ -680,55 +680,55 @@ namespace MarSync
         {
             public Pagination Pagination { get; set; }
             public List<Notification> Notifications { get; set; }
-        }     
-        public class Notification
-    {
-        [JsonPropertyName("eventType")]
-        public string EventType { get; set; }
-
-        [JsonPropertyName("notificationId")]
-        public int NotificationId { get; set; }
-
-        [JsonPropertyName("notificationDate")]
-        public DateTime NotificationDate { get; set; }
-
-        [JsonPropertyName("transmissionId")]
-        public string TransmissionId { get; set; }
-
-        [JsonPropertyName("sbdhTransmissionId")]
-        public string SbdhTransmissionId { get; set; }
-
-        [JsonPropertyName("documentId")]
-        public string DocumentId { get; set; }
-
-        [JsonPropertyName("peppolDocumentType")]
-        public string PeppolDocumentType { get; set; }
-
-        [JsonPropertyName("sender")]
-        public string Sender { get; set; }
-
-        [JsonPropertyName("receiver")]
-        public string Receiver { get; set; }
-
-        [JsonPropertyName("receivedDate")]
-        public DateTime ReceivedDate { get; set; }
-
-        [JsonPropertyName("details")]
-        public List<NotificationDetail> Details { get; set; }
-
-        public Notification()
-        {
-            Details = new List<NotificationDetail>();
         }
-    }
-        public class NotificationDetail
-    {
-        [JsonPropertyName("code")]
-        public string Code { get; set; }
+        public class Notification
+        {
+            [JsonPropertyName("eventType")]
+            public string EventType { get; set; }
 
-        [JsonPropertyName("message")]
-        public string Message { get; set; }
-    }
+            [JsonPropertyName("notificationId")]
+            public int NotificationId { get; set; }
+
+            [JsonPropertyName("notificationDate")]
+            public DateTime NotificationDate { get; set; }
+
+            [JsonPropertyName("transmissionId")]
+            public string TransmissionId { get; set; }
+
+            [JsonPropertyName("sbdhTransmissionId")]
+            public string SbdhTransmissionId { get; set; }
+
+            [JsonPropertyName("documentId")]
+            public string DocumentId { get; set; }
+
+            [JsonPropertyName("peppolDocumentType")]
+            public string PeppolDocumentType { get; set; }
+
+            [JsonPropertyName("sender")]
+            public string Sender { get; set; }
+
+            [JsonPropertyName("receiver")]
+            public string Receiver { get; set; }
+
+            [JsonPropertyName("receivedDate")]
+            public DateTime ReceivedDate { get; set; }
+
+            [JsonPropertyName("details")]
+            public List<NotificationDetail> Details { get; set; }
+
+            public Notification()
+            {
+                Details = new List<NotificationDetail>();
+            }
+        }
+        public class NotificationDetail
+        {
+            [JsonPropertyName("code")]
+            public string Code { get; set; }
+
+            [JsonPropertyName("message")]
+            public string Message { get; set; }
+        }
 
 
 
@@ -798,7 +798,7 @@ namespace MarSync
             public LegalEntityDetails LegalEntityDetails { get; set; }
             public List<PeppolRegistration> PeppolRegistrations { get; set; }
         }
-               
+
         public class InvoiceResponseClarification
         {
             public string ClarificationCode { get; set; }
@@ -1477,30 +1477,10 @@ namespace MarSync
             public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
         }
 
+
+
         // Response Model for v2
-        public class InvoiceResponseResult
-        {
-            [JsonPropertyName("transmissionId")]
-            public string TransmissionId { get; set; }
 
-            [JsonPropertyName("documentId")]
-            public string DocumentId { get; set; }
-
-            [JsonPropertyName("documentTypeEnum")]
-            public string DocumentTypeEnum { get; set; }
-
-            [JsonPropertyName("sender")]
-            public string Sender { get; set; }
-
-            [JsonPropertyName("receiver")]
-            public string Receiver { get; set; }
-
-            [JsonPropertyName("sbdhInstanceIdentifier")]
-            public string SbdhInstanceIdentifier { get; set; }
-
-            [JsonPropertyName("c5SubmissionResult")]
-            public C5SubmissionResult C5SubmissionResult { get; set; }
-        }
 
         public class C5SubmissionResult
         {
@@ -1600,63 +1580,37 @@ namespace MarSync
         }
 
 
-
-
-
-
-
-
-
-        // Other classes like VatResponse, ViesApproximate, Contact, LegalEntityDetails,
-        // PeppolIdentifier, PeppolRegistration, and InvoiceResponseClarification
-        // defined here as needed.
-        public class ViesApproximate
+        public class InvoiceResponseRequest
         {
-            public string Name { get; set; }
-            public string Street { get; set; }
-            public string PostalCode { get; set; }
-            public string City { get; set; }
-            public string CompanyType { get; set; }
-            public int MatchName { get; set; }
-            public int MatchStreet { get; set; }
-            public int MatchPostalCode { get; set; }
-            public int MatchCity { get; set; }
-            public int MatchCompanyType { get; set; }
-        }        
-        public class Contact
-        {
-            public string ContactType { get; set; }
-            public string Name { get; set; }
-            public string PhoneNumber { get; set; }
-            public string Email { get; set; }
+            [JsonPropertyName("invoiceTransmissionId")]
+            public string InvoiceTransmissionId { get; set; }
+
+            [JsonPropertyName("responseCode")]
+            public string ResponseCode { get; set; }
+
+            [JsonPropertyName("invoiceResponseId")]
+            public string InvoiceResponseId { get; set; }
+
+            [JsonPropertyName("note")]
+            public string Note { get; set; }
+
+            [JsonPropertyName("effectiveDate")]
+            public string EffectiveDate { get; set; }
+
+            [JsonPropertyName("invoiceClarifications")]
+            public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
         }
-        public class LegalEntityDetails
-        {
-            public bool PublishInPeppolDirectory { get; set; }
-            public string Name { get; set; }
-            public string CountryCode { get; set; }
-            public string GeographicalInformation { get; set; }
-            public string WebsiteUrl { get; set; }
-            public List<Contact> Contacts { get; set; }
-            public string AdditionalInformation { get; set; }
-        }
-        public class PeppolIdentifier
-        {
-            public string Scheme { get; set; }
-            public string Identifier { get; set; }
-        }
-        public class PeppolRegistration
-        {
-            public PeppolIdentifier PeppolIdentifier { get; set; }
-            public List<string> SupportedDocuments { get; set; }
-            public bool PublishInSmp { get; set; }
-        }       
 
         public class InvoiceResponseClarification
         {
+            [JsonPropertyName("clarificationCode")]
             public string ClarificationCode { get; set; }
+
+            [JsonPropertyName("clarificationType")]
             public string ClarificationType { get; set; }
+
+            [JsonPropertyName("clarification")]
             public string Clarification { get; set; }
-        }        
+        }
     }
 }

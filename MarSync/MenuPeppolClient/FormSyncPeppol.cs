@@ -16,6 +16,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
@@ -45,14 +46,14 @@ namespace MarSync.MarioMenu.Actions
         public int totalInMapOutAcceptedOrRejected = 0;
 
         public int totalInMapInToBook = 0;
-                
+
         public bool firstCycle = false;
         public bool badRequestsOccurred = false;
 
         public FormSyncPeppol()
         {
             InitializeComponent();
-                        
+
             _timer = new Timer
             {
                 Interval = 1 * 60 * 1000 // 1 minuut in milliseconds
@@ -133,7 +134,7 @@ namespace MarSync.MarioMenu.Actions
                     "Gelieve een recentere versie te installeren.",
                     "Onbekende MarIntegraal versie",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);                
+                    MessageBoxIcon.Warning);
             }
             else if (valOfVersion < 115024)
             {
@@ -141,7 +142,7 @@ namespace MarSync.MarioMenu.Actions
                     "Installeer recentere versie van MarIntegraal a.u.b.",
                     "Versie MarIntegraal",
                     MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning);                
+                    MessageBoxIcon.Warning);
             }
 
             //if (valOfVersion < 115007)
@@ -183,7 +184,7 @@ namespace MarSync.MarioMenu.Actions
 
             ComboBoxResponseCode.Items.Add(new KeyValuePair<string, string>("AB", "Koper erkent (Buyer acknowledges)"));
             ComboBoxResponseCode.Items.Add(new KeyValuePair<string, string>("IP", "In verwerking (In process)"));
-            ComboBoxResponseCode.Items.Add(new KeyValuePair<string, string>("UQ", "In onderzoek (Under query)"));            
+            ComboBoxResponseCode.Items.Add(new KeyValuePair<string, string>("UQ", "In onderzoek (Under query)"));
             ComboBoxResponseCode.DisplayMember = "Value";
             ComboBoxResponseCode.ValueMember = "Key";
             ComboBoxResponseCode.SelectedIndex = 0;
@@ -232,14 +233,14 @@ namespace MarSync.MarioMenu.Actions
             {
                 PanelReporting.Enabled = true;
             }
-                        
+
             if (SharedGlobals.UserCanToggleTabs)
             {
-                
+
             }
             else
             {
-                
+
             }
 
             SetLabelsBusy(false);
@@ -348,12 +349,14 @@ namespace MarSync.MarioMenu.Actions
 
         async private void ButtonCheckConnectivity_Click(object sender, EventArgs e)
         {
-            if (await IsConnectionValid()) {             
-                ToolStripStatusLabel.Text = "Connectie succesvol.";
-            } else
+            if (await IsConnectionValid())
             {
-                ToolStripStatusLabel.Text = "Connectie mislukt, controleer uw verbinding.";             
-            }            
+                ToolStripStatusLabel.Text = "Connectie succesvol.";
+            }
+            else
+            {
+                ToolStripStatusLabel.Text = "Connectie mislukt, controleer uw verbinding.";
+            }
         }
 
         async private Task<bool> IsConnectionValid()
@@ -368,13 +371,14 @@ namespace MarSync.MarioMenu.Actions
                 else
                 {
                     response = await AdemicoClientV1.CheckConnectionV1(new HttpClient());
-                }                
+                }
                 if (!string.IsNullOrEmpty(response))
                 {
                     if (response.Contains("HttpRequestException"))
                     {
                         return false;
-                    }else
+                    }
+                    else
                     {
                         return true;
                     }
@@ -392,7 +396,7 @@ namespace MarSync.MarioMenu.Actions
             {
                 return false;
             }
-        }   
+        }
 
         private async void ButtonTimer_Click(object sender, EventArgs e)
         {
@@ -429,7 +433,7 @@ namespace MarSync.MarioMenu.Actions
             _countdownTimer.Start();
 
             ToolStripStatusLabel.Text = $"Timer is gestart. Next refresh in {FormatSeconds(_countdownSeconds)}";
-            
+
             ButtonTimer.Enabled = false;
             ButtonMyStatusReport.Enabled = false;
 
@@ -454,7 +458,7 @@ namespace MarSync.MarioMenu.Actions
                 $"BIC Nummer: {SharedGlobals.CompanyBICNumber}\n\n" +
                 $"Email Adres Bedrijf: {SharedGlobals.CompanyEmailAddress}\n" +
                 $"Contactpersoon: {SharedGlobals.CompanyContactPerson}\n" +
-                $"Email Adres Contactpersoon: {SharedGlobals.CompanyContactEmailAddress}\n\n" +                                
+                $"Email Adres Contactpersoon: {SharedGlobals.CompanyContactEmailAddress}\n\n" +
                 $"Inhoudsopgave Mar Mdv Bestand: {SharedGlobals.MarntMdvLocation}\n",
                 "Variabele gegevens van actief bedrijf",
                 MessageBoxButtons.OK,
@@ -610,7 +614,7 @@ namespace MarSync.MarioMenu.Actions
 
             ButtonTimer.Enabled = false;
             ButtonMyStatusReport.Enabled = false;
-            
+
             ButtonUpdateBEPartiesSupported.Enabled = false;
             ComboBoxBuyerOrSeller.Enabled = false;
 
@@ -663,22 +667,40 @@ namespace MarSync.MarioMenu.Actions
         }
 
         async private void ButtonInvoiceReceivedResponse_Click(object sender, EventArgs e)
-        {           
+        {
+            //// Create a demo request object for testing purposes
+            //var demoRequest = new AdemicoModelsV2.InvoiceResponseRequest
+            //{
+            //    InvoiceTransmissionId = "803828d52d4911ed85f512ef9c5638d0",
+            //    ResponseCode = "RE",
+            //    InvoiceResponseId = "d4b52c6f1f0b11f1b23f0c3799f7d36b",
+            //    Note = "The invoice has been rejected",
+            //    EffectiveDate = "2011-05-21",
+            //    InvoiceClarifications = null
+            //};
 
+            //var resultDemo = await AdemicoClientV2.SendInvoiceResponseAsync(
+            //    invoiceTransmissionId: demoRequest.InvoiceTransmissionId,
+            //    responseCode: demoRequest.ResponseCode,
+            //    invoiceResponseId: demoRequest.InvoiceResponseId,
+            //    note: demoRequest.Note,
+            //    effectiveDate: demoRequest.EffectiveDate,
+            //    clarifications: null
+            //);
+
+            // ------------------------------
             if (SharedGlobals.AdemicoApiUsedV2)
             {
                 string selectedResponseCode =
-                ((KeyValuePair<string, string>)ComboBoxResponseCode.SelectedItem).Key;
+                    ((KeyValuePair<string, string>)ComboBoxResponseCode.SelectedItem).Key;
 
                 var clarifications = new List<AdemicoModelsV2.InvoiceResponseClarification>();
-                if (selectedResponseCode == "AP" || selectedResponseCode == "PD")
-                {
-                    clarifications = null;
-                }
-                else
+
+                // Only add clarifications for response codes that require them
+                if (selectedResponseCode != "AP" && selectedResponseCode != "PD")
                 {
                     string selectedClarificationCode =
-                    ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
+                        ((KeyValuePair<string, string>)ComboBoxClarificationCode.SelectedItem).Key;
 
                     // Example clarification for rejection
                     var clarification = new AdemicoModelsV2.InvoiceResponseClarification
@@ -692,40 +714,38 @@ namespace MarSync.MarioMenu.Actions
 
                 string confirmMessage =
                     "Reactie verzenden naar leverancier\n\n" +
-                        $"Transmission ID: {TextBoxToAcceptOrRejectTransId.Text}\n" +
-                        $"Response Code: {selectedResponseCode} ({ComboBoxResponseCode.Text})\n" +
-                        $"Note: {TextBoxNote.Text}\n" +
-                            (clarifications != null && clarifications.Count > 0
-                                ? $"Clarification Code: {clarifications[0].ClarificationCode} ({ComboBoxClarificationCode.Text})\nClarification: {clarifications[0].Clarification}\n"
-                                : "") + "\n" +
+                    $"Transmission ID: {TextBoxToAcceptOrRejectTransId.Text}\n" +
+                    $"Response Code: {selectedResponseCode} ({ComboBoxResponseCode.Text})\n" +
+                    $"Note: {TextBoxNote.Text}\n" +
+                    (clarifications.Count > 0
+                        ? $"Clarification Code: {clarifications[0].ClarificationCode} ({ComboBoxClarificationCode.Text})\nClarification: {clarifications[0].Clarification}\n"
+                        : "") +
+                    "\nWeet u zeker dat u deze actie wilt uitvoeren?";
 
-                    "Weet u zeker dat u deze actie wilt uitvoeren?";
                 var confirmResult = MessageBox.Show(confirmMessage, "Bevestig bijwerken", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2);
                 if (confirmResult != DialogResult.Yes)
                 {
                     return; // User chose No, exit the method
                 }
-                MessageBox.Show("Still to do");
-                return;
 
-                //// Example usage of the V2 API to send an invoice response
-                //// Still to do: Implement the actual sending logic using the values from the form
-                //var result = await AdemicoClientV2.SendInvoiceResponseAsync(
-                //       invoiceTransmissionId: "803828d52d4911ed85f512ef9c5638d0",
-                //        responseCode: "AP",
-                //        invoiceResponseId: "d4b52c6f1f0b11f1b23f0c3799f7d36b",
-                //        note: "Invoice accepted for payment",
-                //        effectiveDate: "2025-09-23",
-                //        clarifications: null);
+                // Send the invoice response
+                var result = await AdemicoClientV2.SendInvoiceResponseAsync(
+                    invoiceTransmissionId: TextBoxToAcceptOrRejectTransId.Text,
+                    responseCode: selectedResponseCode,
+                    invoiceResponseId: TextBoxToAcceptOrRejectTransId.Text, // trying using transmissionId?
+                    note: TextBoxNote.Text,
+                    effectiveDate: DateTime.UtcNow.ToString("yyyy-MM-dd"),
+                    clarifications: null
+                );
 
-                //if (result.IsSuccess)
-                //{
-                //    MessageBox.Show("Invoice Response sent successfully!");
-                //}
-                //else
-                //{
-                //    MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                //}
+                if (result.IsSuccess)
+                {
+                    MessageBox.Show($"Success: {result.ResponseBody}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);                    
+                }
+                else
+                {
+                    MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
@@ -801,7 +821,7 @@ namespace MarSync.MarioMenu.Actions
                     ToolStripStatusLabel.Text = $"Fout: {ex.Message}";
                     MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }                
+            }
         }
 
         private void RadioButtonAccept_CheckedChanged(object sender, EventArgs e)
@@ -1052,7 +1072,7 @@ namespace MarSync.MarioMenu.Actions
                 LabelClarification.Visible = true;
             }
         }
-        
+
         private void ButtonOpenPdfMapIn_Click(object sender, EventArgs e)
         {
             ExtractPdfFromUblDocument(LabelFileIn.Text);
@@ -1365,7 +1385,7 @@ namespace MarSync.MarioMenu.Actions
                 return false;
             }
         }
-        
+
         private void OpenFolder(string folderPath)
         {
             if (Directory.Exists(folderPath))
@@ -1491,7 +1511,7 @@ namespace MarSync.MarioMenu.Actions
             }
             return stringToReturn;
         }
-        
+
         private void ListBoxDocumentsIn_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (ListBoxDocumentsIn.Items.Count != 0)
@@ -1524,7 +1544,7 @@ namespace MarSync.MarioMenu.Actions
                         {
                             // MessageBox.Show("TransmissieId is reeds verwijderd");
                         }
-                    }                    
+                    }
                 }
             }
         }
@@ -1613,8 +1633,8 @@ namespace MarSync.MarioMenu.Actions
                         // 1) Delete all INVOICE_RESPONSE_RECEIVED notifications for this document
                         string virtualResponses2 = FilterJson(documentId, false, "INVOICE_RESPONSE_RECEIVED");
                         int[] notificationIdsStep1 = GetNotificationIds(virtualResponses2);
-                        
-                        
+
+
                         foreach (int id in notificationIdsStep1)
                         {
                             if (SharedGlobals.AdemicoApiUsedV2)
@@ -1632,7 +1652,7 @@ namespace MarSync.MarioMenu.Actions
                                 {
                                     MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
                                 }
-                            }                                
+                            }
                         }
 
                         // 2) Then delete the DOCUMENT_SENT notification(s) (normally only one)
@@ -1656,7 +1676,7 @@ namespace MarSync.MarioMenu.Actions
                                 {
                                     MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
                                 }
-                            }                                
+                            }
                         }
                         titanicDeckChairs++;
 
@@ -1807,7 +1827,7 @@ namespace MarSync.MarioMenu.Actions
                             // MessageBox.Show($"Fout: {ex.Message}", "Fout", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
                     }
-                                         
+
                 }
             }
             totalInMapOutSentConfirmed = localTotalOutSentConfirmed;
@@ -1842,10 +1862,10 @@ namespace MarSync.MarioMenu.Actions
                     if (SharedGlobals.AdemicoApiUsedV2)
                     {
                         try
-                        {   
+                        {
                             // With default REJECT policy
                             // var result = await AdemicoClientV2.PeppolInvoiceReceiverV2.GetUblInvoiceAsync(transmissionId);
-                                                       
+
                             // With ALLOW_WITH_WARNINGS policy
                             var result = await AdemicoClientV2.PeppolInvoiceReceiver.GetUblInvoiceAsync(
                                 transmissionId,
@@ -1863,7 +1883,7 @@ namespace MarSync.MarioMenu.Actions
                                 MessageBox.Show($"Error: {result.ResponseBody}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                 return;
                             }
-                            
+
                             // Parse documentId directly from the XML string (no temp file needed)
                             string tempFile = Path.GetTempFileName();
                             File.WriteAllText(tempFile, invoiceXml);
@@ -1974,7 +1994,7 @@ namespace MarSync.MarioMenu.Actions
                     }
 
 
-                    
+
                 }
                 else
                 {
@@ -2017,7 +2037,7 @@ namespace MarSync.MarioMenu.Actions
 
                         // 1) Delete all INVOICE_RESPONSE_SENT notifications for this document
                         foreach (int id in notificationIdsStep1)
-                        {                            
+                        {
                             if (SharedGlobals.AdemicoApiUsedV2)
                             {
                                 var result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(false);
@@ -2039,7 +2059,7 @@ namespace MarSync.MarioMenu.Actions
                                     return;
                                 }
                                 Console.WriteLine("Notificatie succesvol verwijderd");
-                            }                            
+                            }
                         }
 
                         // 2) Then delete all DOCUMENT_RECEIVED notifications for this document
@@ -2049,10 +2069,10 @@ namespace MarSync.MarioMenu.Actions
                         foreach (int id in notificationIdsStep2)
                         {
                             try
-                            {                                
+                            {
                                 if (SharedGlobals.AdemicoApiUsedV2)
                                 {
-                                    AdemicoClientV2.ApiResult result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                    AdemicoClientV2.ApiResult result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(true);
                                     if (result.StatusCode == HttpStatusCode.OK)
                                     {
                                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
@@ -2073,7 +2093,7 @@ namespace MarSync.MarioMenu.Actions
                                 }
                                 else
                                 {
-                                    AdemicoClientV1.ApiResult result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(false);
+                                    AdemicoClientV1.ApiResult result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                                     if (result.StatusCode == HttpStatusCode.OK)
                                     {
                                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
@@ -2091,7 +2111,7 @@ namespace MarSync.MarioMenu.Actions
                                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Error deleting notification {id}: {errorMsg}");
                                         MessageBox.Show($"Error deleting notification {id}: {errorMsg}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     }
-                                }                                
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -2105,11 +2125,19 @@ namespace MarSync.MarioMenu.Actions
                         titanicDeckChairs++;
 
                         // 3) Only after all deletes are awaited, move the XML file to archive
-                        string resultMove =
-                            MarDataFilesHelper.MovePeppolFileToCloudDrive(
-                                filePath,
-                                SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in");
-                        Console.WriteLine(resultMove);
+                        try
+                        {
+                            string resultMove =
+                                MarDataFilesHelper.MovePeppolFileToCloudDrive(
+                                    filePath,
+                                    SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in");
+                            Console.WriteLine(resultMove);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception moving file to archive: {ex.Message}");
+                            MessageBox.Show($"Exception moving file to archive: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                     else
                     {
@@ -2160,7 +2188,7 @@ namespace MarSync.MarioMenu.Actions
                     string balansOfPayments = GetBuyersBookStatusRS(arrayRef);
 
                     if (balansOfPayments == "Volledig Betaald")
-                    {                        
+                    {
                         // 0. Betaald en meldingen moeten ook worden verwijderd, dus nu zeker naar archief verplaatsen
                         string resultMove =
                             MarDataFilesHelper.MovePeppolFileToCloudDrive(
@@ -2200,9 +2228,9 @@ namespace MarSync.MarioMenu.Actions
                                         MessageBox.Show("Something went wrong"); // Handle error, result.ResponseBody may contain error details
                                     }
                                     Console.WriteLine("Ok, Message from snapshot PeppolReceive\nOk, Deleted reaction notification with id: " + id + " for document: " + cleanUpDocument);
-                                }                                    
+                                }
                             }
-                        }                        
+                        }
                     }
                 }
             }
@@ -2214,59 +2242,135 @@ namespace MarSync.MarioMenu.Actions
         {
             string folderInPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\in";
             totalInMapIn = 0;
-            ListBoxDocumentsIn.Items.Clear();
-            if (Directory.Exists(folderInPath))
+
+            try
             {
-                string[] xmlFiles = Directory.GetFiles(folderInPath, "*.xml");
-                ListBoxDocumentsIn.Items.Clear();
-                ListBoxDocumentsIn.Items.AddRange(xmlFiles);
-                LabelFileIn.Text = "";
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(async () =>
+                    {
+                        ListBoxDocumentsIn.Items.Clear();
+                        if (Directory.Exists(folderInPath))
+                        {
+                            string[] xmlFiles = Directory.GetFiles(folderInPath, "*.xml");
+                            ListBoxDocumentsIn.Items.Clear();
+                            ListBoxDocumentsIn.Items.AddRange(xmlFiles);
+                            LabelFileIn.Text = "";
+                        }
+                        else
+                        {
+                            ListBoxDocumentsIn.Visible = false;
+                        }
+                        totalInMapIn = ListBoxDocumentsIn.Items.Count;
+                        LabelTotalInMapIn.Text = totalInMapIn.ToString();
+                    }));
+                }
+                else
+                {
+                    ListBoxDocumentsIn.Items.Clear();
+                    if (Directory.Exists(folderInPath))
+                    {
+                        string[] xmlFiles = Directory.GetFiles(folderInPath, "*.xml");
+                        ListBoxDocumentsIn.Items.Clear();
+                        ListBoxDocumentsIn.Items.AddRange(xmlFiles);
+                        LabelFileIn.Text = "";
+                    }
+                    else
+                    {
+                        ListBoxDocumentsIn.Visible = false;
+                    }
+                    totalInMapIn = ListBoxDocumentsIn.Items.Count;
+                    LabelTotalInMapIn.Text = totalInMapIn.ToString();
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // ToolStripStatusLabel.Text = "Geen ontvangen documenten voor " + SharedGlobals.ActiveCompany;
-                ListBoxDocumentsIn.Visible = false;
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception in RefreshListPeppolReceive: {ex.Message}");
             }
-            totalInMapIn = ListBoxDocumentsIn.Items.Count;
-            LabelTotalInMapIn.Text = totalInMapIn.ToString();
         }
         async private Task RefreshListPeppolSent()
         {
             totalInMapOut = 0;
             string folderOutPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\out";
-            ListBoxDocumentsOut.Items.Clear();
 
-            if (Directory.Exists(folderOutPath))
+            try
             {
-                string[] xmlFiles = Directory.GetFiles(folderOutPath, "*.xml");
-                ListBoxDocumentsOut.Items.Clear();
-                ListBoxDocumentsOut.Items.AddRange(xmlFiles);
-                LabelFileOut.Text = "";
-            }
-            else
-            {
-                // ToolStripStatusLabel.Text = "Geen te verzenden documenten voor " + SharedGlobals.ActiveCompany;
-                ListBoxDocumentsOut.Visible = false;
-            }
-            totalInMapOut = ListBoxDocumentsOut.Items.Count;
-            LabelTotalInMapOut.Text = totalInMapOut.ToString();
-
-            // Refresh the real number of total files to be sent
-            int localTotalOutToEval = 0;
-            int localTotalOutWithResults = 0;
-            foreach (var item in ListBoxDocumentsOut.Items)
-            {
-                string documentId = ReadUBLInvoice(item.ToString(), false, false, false, false, false).ToUpper();
-                string existingResult = GetSellersDocumentSentResultRS(documentId, false); // false for check SENT true for reactions?
-                if (existingResult != "")
+                if (InvokeRequired)
                 {
-                    localTotalOutWithResults++;
-                    localTotalOutToEval++;
+                    Invoke(new Action(async () =>
+                    {
+                        ListBoxDocumentsOut.Items.Clear();
+                        if (Directory.Exists(folderOutPath))
+                        {
+                            string[] xmlFiles = Directory.GetFiles(folderOutPath, "*.xml");
+                            ListBoxDocumentsOut.Items.Clear();
+                            ListBoxDocumentsOut.Items.AddRange(xmlFiles);
+                            LabelFileOut.Text = "";
+                        }
+                        else
+                        {
+                            ListBoxDocumentsOut.Visible = false;
+                        }
+                        totalInMapOut = ListBoxDocumentsOut.Items.Count;
+                        LabelTotalInMapOut.Text = totalInMapOut.ToString();
+
+                        // Refresh the real number of total files to be sent
+                        int localTotalOutToEval = 0;
+                        int localTotalOutWithResults = 0;
+                        foreach (var item in ListBoxDocumentsOut.Items)
+                        {
+                            string documentId = ReadUBLInvoice(item.ToString(), false, false, false, false, false).ToUpper();
+                            string existingResult = GetSellersDocumentSentResultRS(documentId, false); // false for check SENT true for reactions?
+                            if (existingResult != "")
+                            {
+                                localTotalOutWithResults++;
+                                localTotalOutToEval++;
+                            }
+                        }
+                        totalInMapOut = ListBoxDocumentsOut.Items.Count;
+                        LabelTotalInMapOut.Text = totalInMapOut.ToString();
+                        totalInMapOutSent = localTotalOutToEval;
+                    }));
+                }
+                else
+                {
+                    ListBoxDocumentsOut.Items.Clear();
+                    if (Directory.Exists(folderOutPath))
+                    {
+                        string[] xmlFiles = Directory.GetFiles(folderOutPath, "*.xml");
+                        ListBoxDocumentsOut.Items.Clear();
+                        ListBoxDocumentsOut.Items.AddRange(xmlFiles);
+                        LabelFileOut.Text = "";
+                    }
+                    else
+                    {
+                        ListBoxDocumentsOut.Visible = false;
+                    }
+                    totalInMapOut = ListBoxDocumentsOut.Items.Count;
+                    LabelTotalInMapOut.Text = totalInMapOut.ToString();
+
+                    // Refresh the real number of total files to be sent
+                    int localTotalOutToEval = 0;
+                    int localTotalOutWithResults = 0;
+                    foreach (var item in ListBoxDocumentsOut.Items)
+                    {
+                        string documentId = ReadUBLInvoice(item.ToString(), false, false, false, false, false).ToUpper();
+                        string existingResult = GetSellersDocumentSentResultRS(documentId, false); // false for check SENT true for reactions?
+                        if (existingResult != "")
+                        {
+                            localTotalOutWithResults++;
+                            localTotalOutToEval++;
+                        }
+                    }
+                    totalInMapOut = ListBoxDocumentsOut.Items.Count;
+                    LabelTotalInMapOut.Text = totalInMapOut.ToString();
+                    totalInMapOutSent = localTotalOutToEval;
                 }
             }
-            totalInMapOut = ListBoxDocumentsOut.Items.Count;
-            LabelTotalInMapOut.Text = totalInMapOut.ToString();
-            totalInMapOutSent = localTotalOutToEval;
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Exception in RefreshListPeppolSent: {ex.Message}");
+            }
         }
 
         private static string SanitizeFileName(string fileName)
@@ -2283,10 +2387,10 @@ namespace MarSync.MarioMenu.Actions
             // Optionally, trim whitespace
             return fileName.Trim();
         }
-                
+
         private void TabControlVariousActions_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+
         }
         public static string[] ExtractSupportedDocuments(string json)
         {
@@ -2449,7 +2553,7 @@ namespace MarSync.MarioMenu.Actions
 
             var jsonResponse = "";
             if (SharedGlobals.AdemicoApiUsedV2)
-            { 
+            {
                 jsonResponse = await AdemicoClientV2.GetNotificationsAsync(
                 transmissionId: "",
                 documentId: "",
@@ -2461,7 +2565,7 @@ namespace MarSync.MarioMenu.Actions
                 endDateTime: "",
                 page: "",
                 pageSize: "250");
-                    }
+            }
             else
             {
                 jsonResponse = await AdemicoClientV1.GetNotificationsAsync(
@@ -2612,7 +2716,7 @@ namespace MarSync.MarioMenu.Actions
 
             return result.ToString(Newtonsoft.Json.Formatting.Indented);
         }
-                
+
         private static int ExtractWeekNumber(string itemText)
         {
             // itemText expected format: "WeekNN (..."
@@ -2623,7 +2727,7 @@ namespace MarSync.MarioMenu.Actions
             string numPart = itemText.Substring(4, 2); // "NN"
             return int.TryParse(numPart, out int week) ? week : 0;
         }
-        
+
         private void ButtonCleanUpNotifications_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Deze functionaliteit is momenteel nog niet beschikbaar.");
@@ -2633,7 +2737,7 @@ namespace MarSync.MarioMenu.Actions
         {
 
         }
-                        
+
         private static string SanitizePaymentRef(string paymentRef)
         {
             // Define invalid characters for payment references
@@ -2758,7 +2862,7 @@ namespace MarSync.MarioMenu.Actions
         }
 
         private async Task<string> GenerateCompanyStatusReport(string kboNumber, string companyName, string allNotifications)
-        {            
+        {
             var htmlBegin = new StringBuilder();
             var htmlReceiver = new StringBuilder();
             var htmlReactionsSent = new StringBuilder();
@@ -3705,7 +3809,7 @@ namespace MarSync.MarioMenu.Actions
                     adoConn.Open(connectionString, "", "", -1);
 
                     // Open Recordset with the filtered records
-                    string filterSQL = isBuyer 
+                    string filterSQL = isBuyer
                         ? "SELECT * FROM Klanten WHERE v150 = 'BE' AND len(v404) = 10"
                         : "SELECT * FROM Leveranciers WHERE v150 = 'BE' AND len(v404) = 10";
 
