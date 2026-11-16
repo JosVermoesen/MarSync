@@ -502,6 +502,16 @@ namespace MarSync
                 ResponseBody = responseBody;
             }
         }
+
+        /// <summary>
+        /// Retrieves Peppol registration information by filtering on registration criteria.
+        /// Calls the /api/peppol/v1/legal-entities endpoint with registration-specific query parameters.
+        /// </summary>
+        /// <remarks>
+        /// The response can be deserialized to PeppolRegistrationsResponse using:
+        /// JsonSerializer.Deserialize&lt;PeppolRegistrationsResponse&gt;(result.ResponseBody, 
+        ///     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+        /// </remarks>
         public static async Task<LegalEntityResult> GetPeppolRegistrationAsync(
                 string country,
                 string peppolRegistrationScheme,
@@ -563,63 +573,7 @@ namespace MarSync
                 }
             }
         }
-        public static async Task<LegalEntityResult> GetLegalEntitiesAsync(
-            string legalEntityId,
-            string name,
-            string country,
-            string peppolRegistrationScheme,
-            string peppolRegistrationIdentifier,
-            string peppolSupportedDocument,
-            int page = 0,
-            int pageSize = 100,
-            CancellationToken cancellationToken = default)
-        {
-            var queryParams = new Dictionary<string, string>
-            {
-                ["legalEntityId"] = legalEntityId,
-                ["name"] = name,
-                ["country"] = country,
-                ["peppolRegistrationScheme"] = peppolRegistrationScheme,
-                ["peppolRegistrationIdentifier"] = peppolRegistrationIdentifier,
-                ["peppolSupportedDocument"] = peppolSupportedDocument,
-                ["page"] = page.ToString(),
-                ["pageSize"] = pageSize.ToString(),
-                ["accessToken"] = accessToken
-            };
 
-            var baseUrl = ademicoUrl.TrimEnd('/');
-            var requestUri = baseUrl + "/api/peppol/v1/legal-entities?" + string.Join("&", queryParams
-                .Where(kvp => !string.IsNullOrWhiteSpace(kvp.Value))
-                .Select(kvp => kvp.Key + "=" + Uri.EscapeDataString(kvp.Value)));
-
-            using (var httpClient = new HttpClient())
-            {
-                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                httpClient.DefaultRequestHeaders.Accept.Clear();
-                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-                try
-                {
-                    using (var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false))
-                    {
-                        string body = response.Content == null
-                            ? null
-                            : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                        return new LegalEntityResult(response.StatusCode, body);
-                    }
-                }
-                catch (HttpRequestException ex)
-                {
-                    return new LegalEntityResult(0, "HttpRequestException in GetLegalEntitiesAsync: " + ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    return new LegalEntityResult(0, "Exception in GetLegalEntitiesAsync: " + ex.Message);
-                }
-            }
-        }
         public static async Task<ApiResult> CreateOrRegisterLegalEntityAsync(
             CreateLegalEntityModel request,
             CancellationToken cancellationToken = default)
@@ -767,31 +721,108 @@ namespace MarSync
         }
         public class Contact
         {
+            [JsonPropertyName("contactType")]
             public string ContactType { get; set; }
+
+            [JsonPropertyName("name")]
             public string Name { get; set; }
+
+            [JsonPropertyName("phoneNumber")]
             public string PhoneNumber { get; set; }
+
+            [JsonPropertyName("email")]
             public string Email { get; set; }
         }
         public class LegalEntityDetails
         {
+            [JsonPropertyName("publishInPeppolDirectory")]
             public bool PublishInPeppolDirectory { get; set; }
+
+            [JsonPropertyName("name")]
             public string Name { get; set; }
+
+            [JsonPropertyName("countryCode")]
             public string CountryCode { get; set; }
+
+            [JsonPropertyName("geographicalInformation")]
             public string GeographicalInformation { get; set; }
+
+            [JsonPropertyName("registrationDate")]
+            public DateTime? RegistrationDate { get; set; }
+
+            [JsonPropertyName("websiteURL")]
             public string WebsiteUrl { get; set; }
+
+            [JsonPropertyName("contacts")]
             public List<Contact> Contacts { get; set; }
+
+            [JsonPropertyName("additionalInformation")]
             public string AdditionalInformation { get; set; }
+
+            [JsonPropertyName("peppolAdditionalIdentifiers")]
+            public List<PeppolIdentifier> PeppolAdditionalIdentifiers { get; set; }
         }
         public class PeppolIdentifier
         {
+            [JsonPropertyName("scheme")]
             public string Scheme { get; set; }
+
+            [JsonPropertyName("identifier")]
             public string Identifier { get; set; }
         }
+
+        // NOTE: PeppolRegistration is used for CREATE/UPDATE requests with flat structure
         public class PeppolRegistration
         {
             public PeppolIdentifier PeppolIdentifier { get; set; }
             public List<string> SupportedDocuments { get; set; }
             public bool PublishInSmp { get; set; }
+        }
+
+        // Response-specific models for GetPeppolRegistrationAsync
+        public class PeppolRegistrationDetailsResponse
+        {
+            [JsonPropertyName("peppolIdentifier")]
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+
+            [JsonPropertyName("supportedDocuments")]
+            public List<string> SupportedDocuments { get; set; }
+
+            [JsonPropertyName("peppolRegistration")]
+            public bool PeppolRegistration { get; set; }
+
+            [JsonPropertyName("publishInSmp")]
+            public bool PublishInSmp { get; set; }
+        }
+
+        public class PeppolRegistrationResponse
+        {
+            [JsonPropertyName("peppolRegistrationId")]
+            public int PeppolRegistrationId { get; set; }
+
+            [JsonPropertyName("peppolRegistrationDetails")]
+            public PeppolRegistrationDetailsResponse PeppolRegistrationDetails { get; set; }
+        }
+
+        public class PeppolRegistrationEntity
+        {
+            [JsonPropertyName("legalEntityId")]
+            public int LegalEntityId { get; set; }
+
+            [JsonPropertyName("legalEntityDetails")]
+            public LegalEntityDetails LegalEntityDetails { get; set; }
+
+            [JsonPropertyName("peppolRegistrations")]
+            public List<PeppolRegistrationResponse> PeppolRegistrations { get; set; }
+        }
+
+        public class PeppolRegistrationsResponse
+        {
+            [JsonPropertyName("pagination")]
+            public Pagination Pagination { get; set; }
+
+            [JsonPropertyName("legalEntities")]
+            public List<PeppolRegistrationEntity> LegalEntities { get; set; }
         }
         public class CreateLegalEntityModel
         {
@@ -812,6 +843,46 @@ namespace MarSync
             public string Note { get; set; }
             public string EffectiveDate { get; set; }
             public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
+        }
+
+        // V2-specific response models for GetPeppolRegistrationAsync (simplified structure)
+        public class PeppolRegistrationDetailsV2
+        {
+            [JsonPropertyName("peppolIdentifier")]
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+
+            [JsonPropertyName("supportedDocuments")]
+            public List<string> SupportedDocuments { get; set; }
+        }
+
+        public class PeppolRegistrationResponseV2
+        {
+            [JsonPropertyName("peppolIdentifier")]
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+
+            [JsonPropertyName("supportedDocuments")]
+            public List<string> SupportedDocuments { get; set; }
+        }
+
+        public class PeppolRegistrationEntityV2
+        {
+            [JsonPropertyName("legalEntityId")]
+            public int LegalEntityId { get; set; }
+
+            [JsonPropertyName("legalEntityDetails")]
+            public LegalEntityDetails LegalEntityDetails { get; set; }
+
+            [JsonPropertyName("peppolRegistrations")]
+            public List<PeppolRegistrationResponseV2> PeppolRegistrations { get; set; }
+        }
+
+        public class PeppolRegistrationsResponseV2
+        {
+            [JsonPropertyName("legalEntities")]
+            public List<PeppolRegistrationEntityV2> LegalEntities { get; set; }
+
+            [JsonPropertyName("pagination")]
+            public Pagination Pagination { get; set; }
         }
     }
 
@@ -1074,6 +1145,108 @@ namespace MarSync
                 }
             }
         }
+
+        /// <summary>
+        /// Retrieves Peppol registration information by filtering on optional criteria.
+        /// Calls the /api/peppol/v2/legal-entities endpoint with accessToken as HTTP header.
+        /// </summary>
+        /// <remarks>
+        /// V2 key differences from V1:
+        /// - accessToken is sent as HTTP header, not query parameter
+        /// - Response structure is simplified
+        /// - All query parameters are optional
+        /// 
+        /// The response can be deserialized to PeppolRegistrationsResponseV2 using:
+        /// JsonSerializer.Deserialize&lt;AdemicoModelsV1.PeppolRegistrationsResponseV2&gt;(result.ResponseBody,
+        ///     new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
+        /// </remarks>
+        public static async Task<ApiResult> GetPeppolRegistrationAsync(
+            string country,
+            string peppolRegistrationScheme,
+            string peppolRegistrationIdentifier,
+            string peppolSupportedDocument,
+            string legalEntityId,
+            int page = 0,
+            int pageSize = 100,
+            CancellationToken cancellationToken = default)
+        {
+            var queryParams = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(country)) queryParams.Add("country=" + Encode(country));
+            if (!string.IsNullOrWhiteSpace(peppolRegistrationScheme)) queryParams.Add("peppolRegistrationScheme=" + Encode(peppolRegistrationScheme));
+            if (!string.IsNullOrWhiteSpace(peppolRegistrationIdentifier)) queryParams.Add("peppolRegistrationIdentifier=" + Encode(peppolRegistrationIdentifier));
+            if (!string.IsNullOrWhiteSpace(peppolSupportedDocument)) queryParams.Add("peppolSupportedDocument=" + Encode(peppolSupportedDocument));
+            if (!string.IsNullOrWhiteSpace(legalEntityId)) queryParams.Add("legalEntityId=" + Encode(legalEntityId));
+            if (!string.IsNullOrWhiteSpace(peppolSupportedDocument)) queryParams.Add("peppolSupportedDocument=" + Encode(peppolSupportedDocument));
+
+            queryParams.Add("page=" + page.ToString());
+            queryParams.Add("pageSize=" + pageSize.ToString());
+
+            int requestCounter = SharedGlobals.RequestCounter + 1;
+            SharedGlobals.RequestCounter = requestCounter;
+
+            var fullUrl = ademicoUrl.TrimEnd('/') + "/api/peppol/v2/legal-entities";
+            if (queryParams.Count > 0)
+                fullUrl += "?" + string.Join("&", queryParams);
+
+            using (var httpClient = new HttpClient())
+            using (var request = new HttpRequestMessage(HttpMethod.Get, fullUrl))
+            {
+                // Basic authentication
+                var credentials = Convert.ToBase64String(Encoding.UTF8.GetBytes(username + ":" + password));
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Add accessToken header (V2 requirement - header only, not query parameter)
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    request.Headers.Add("accessToken", accessToken);
+                }
+
+                try
+                {
+                    using (HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false))
+                    {
+                        string body = response.Content == null
+                            ? null
+                            : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET legal-entities - HTTP {(int)response.StatusCode}");
+
+                        if (!string.IsNullOrWhiteSpace(body) && response.StatusCode != System.Net.HttpStatusCode.OK)
+                        {
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
+                        }
+
+                        return new ApiResult(response.StatusCode, body);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                    }
+                    return new ApiResult(0, "HttpRequestException in GetPeppolRegistrationAsync: " + ex.Message);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
+                    return new ApiResult(0, "Request cancelled in GetPeppolRegistrationAsync: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
+                    }
+                    return new ApiResult(0, "Exception in GetPeppolRegistrationAsync: " + ex.Message);
+                }
+            }
+        }
+
         public static class PeppolInvoiceSender
         {
             public class ApiResult
@@ -1476,12 +1649,7 @@ namespace MarSync
             [JsonPropertyName("invoiceClarifications")]
             public List<InvoiceResponseClarification> InvoiceClarifications { get; set; }
         }
-
-
-
         // Response Model for v2
-
-
         public class C5SubmissionResult
         {
             [JsonPropertyName("status")]
@@ -1511,7 +1679,6 @@ namespace MarSync
 
             public bool IsSuccess => StatusCode == HttpStatusCode.OK;
         }
-
         private static string Encode(string val)
         {
             return Uri.EscapeDataString(val ?? string.Empty);

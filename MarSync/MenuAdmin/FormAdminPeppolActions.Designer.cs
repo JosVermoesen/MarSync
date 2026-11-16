@@ -32,6 +32,9 @@
             this.ButtonClose = new System.Windows.Forms.Button();
             this.TabControlVariousActions = new System.Windows.Forms.TabControl();
             this.TabActions = new System.Windows.Forms.TabPage();
+            this.DetectorTest3 = new System.Windows.Forms.Button();
+            this.DetectorTest2 = new System.Windows.Forms.Button();
+            this.DetectorTest1 = new System.Windows.Forms.Button();
             this.ButtonMailAllStatusReports = new System.Windows.Forms.Button();
             this.ButtonShowAllNotificationsAsReceiver = new System.Windows.Forms.Button();
             this.ButtonShowAllNotificationsAsSender = new System.Windows.Forms.Button();
@@ -51,7 +54,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.ButtonCheckConnectivity = new System.Windows.Forms.Button();
             this.TabNotifications = new System.Windows.Forms.TabPage();
-            this.ButtonTestFilter = new System.Windows.Forms.Button();
             this.RichTextBoxAllNotifications = new System.Windows.Forms.RichTextBox();
             this.TextBoxSender = new System.Windows.Forms.TextBox();
             this.TextBoxReceiver = new System.Windows.Forms.TextBox();
@@ -92,9 +94,6 @@
             this.ButtonEntityNew = new System.Windows.Forms.Button();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
-            this.DetectorTest1 = new System.Windows.Forms.Button();
-            this.DetectorTest2 = new System.Windows.Forms.Button();
-            this.DetectorTest3 = new System.Windows.Forms.Button();
             this.TabControlVariousActions.SuspendLayout();
             this.TabActions.SuspendLayout();
             this.TabNotifications.SuspendLayout();
@@ -161,6 +160,36 @@
             this.TabActions.TabIndex = 0;
             this.TabActions.Text = "Opzoekingen";
             this.TabActions.UseVisualStyleBackColor = true;
+            // 
+            // DetectorTest3
+            // 
+            this.DetectorTest3.Location = new System.Drawing.Point(485, 251);
+            this.DetectorTest3.Name = "DetectorTest3";
+            this.DetectorTest3.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest3.TabIndex = 26;
+            this.DetectorTest3.Text = "Report Compare";
+            this.DetectorTest3.UseVisualStyleBackColor = true;
+            this.DetectorTest3.Click += new System.EventHandler(this.DetectorTest3_Click);
+            // 
+            // DetectorTest2
+            // 
+            this.DetectorTest2.Location = new System.Drawing.Point(485, 215);
+            this.DetectorTest2.Name = "DetectorTest2";
+            this.DetectorTest2.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest2.TabIndex = 25;
+            this.DetectorTest2.Text = "Compare Snapshots";
+            this.DetectorTest2.UseVisualStyleBackColor = true;
+            this.DetectorTest2.Click += new System.EventHandler(this.DetectorTest2_Click);
+            // 
+            // DetectorTest1
+            // 
+            this.DetectorTest1.Location = new System.Drawing.Point(485, 181);
+            this.DetectorTest1.Name = "DetectorTest1";
+            this.DetectorTest1.Size = new System.Drawing.Size(129, 30);
+            this.DetectorTest1.TabIndex = 24;
+            this.DetectorTest1.Text = "Analyze Snapshot";
+            this.DetectorTest1.UseVisualStyleBackColor = true;
+            this.DetectorTest1.Click += new System.EventHandler(this.DetectorTest1_Click);
             // 
             // ButtonMailAllStatusReports
             // 
@@ -328,7 +357,6 @@
             // 
             // TabNotifications
             // 
-            this.TabNotifications.Controls.Add(this.ButtonTestFilter);
             this.TabNotifications.Controls.Add(this.RichTextBoxAllNotifications);
             this.TabNotifications.Controls.Add(this.TextBoxSender);
             this.TabNotifications.Controls.Add(this.TextBoxReceiver);
@@ -342,15 +370,6 @@
             this.TabNotifications.TabIndex = 1;
             this.TabNotifications.Text = "Meldingen";
             this.TabNotifications.UseVisualStyleBackColor = true;
-            // 
-            // ButtonTestFilter
-            // 
-            this.ButtonTestFilter.Location = new System.Drawing.Point(522, 19);
-            this.ButtonTestFilter.Name = "ButtonTestFilter";
-            this.ButtonTestFilter.Size = new System.Drawing.Size(102, 54);
-            this.ButtonTestFilter.TabIndex = 6;
-            this.ButtonTestFilter.Text = "TestFilter";
-            this.ButtonTestFilter.UseVisualStyleBackColor = true;
             // 
             // RichTextBoxAllNotifications
             // 
@@ -744,36 +763,6 @@
             this.ToolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
             this.ToolStripStatusLabel.Text = "Ready";
             // 
-            // DetectorTest1
-            // 
-            this.DetectorTest1.Location = new System.Drawing.Point(485, 181);
-            this.DetectorTest1.Name = "DetectorTest1";
-            this.DetectorTest1.Size = new System.Drawing.Size(129, 30);
-            this.DetectorTest1.TabIndex = 24;
-            this.DetectorTest1.Text = "Analyze Snapshot";
-            this.DetectorTest1.UseVisualStyleBackColor = true;
-            this.DetectorTest1.Click += new System.EventHandler(this.DetectorTest1_Click);
-            // 
-            // DetectorTest2
-            // 
-            this.DetectorTest2.Location = new System.Drawing.Point(485, 215);
-            this.DetectorTest2.Name = "DetectorTest2";
-            this.DetectorTest2.Size = new System.Drawing.Size(129, 30);
-            this.DetectorTest2.TabIndex = 25;
-            this.DetectorTest2.Text = "Compare Snapshots";
-            this.DetectorTest2.UseVisualStyleBackColor = true;
-            this.DetectorTest2.Click += new System.EventHandler(this.DetectorTest2_Click);
-            // 
-            // DetectorTest3
-            // 
-            this.DetectorTest3.Location = new System.Drawing.Point(485, 251);
-            this.DetectorTest3.Name = "DetectorTest3";
-            this.DetectorTest3.Size = new System.Drawing.Size(129, 30);
-            this.DetectorTest3.TabIndex = 26;
-            this.DetectorTest3.Text = "Report Compare";
-            this.DetectorTest3.UseVisualStyleBackColor = true;
-            this.DetectorTest3.Click += new System.EventHandler(this.DetectorTest3_Click);
-            // 
             // FormAdminPeppolActions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -869,7 +858,6 @@
         private System.Windows.Forms.Button ButtonShowAllNotificationsAsReceiver;
         private System.Windows.Forms.Button ButtonShowAllNotificationsAsSender;
         private System.Windows.Forms.RichTextBox RichTextBoxAllNotifications;
-        private System.Windows.Forms.Button ButtonTestFilter;
         private System.Windows.Forms.Button ButtonMailAllStatusReports;
         private System.Windows.Forms.Button DetectorTest1;
         private System.Windows.Forms.Button DetectorTest2;

@@ -87,15 +87,30 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
             Application.DoEvents();
 
-            var response = await AdemicoClientV1.CheckConnectionV1(new HttpClient());
-            if (response != null)
+            if (SharedGlobals.AdemicoApiUsedV2)
             {
-                ToolStripStatusLabel.Text = response;
+                var response = await AdemicoClientV2.CheckConnection(new HttpClient());
+                if (response != null)
+                {
+                    ToolStripStatusLabel.Text = response;
+                }
+                else
+                {
+                    MessageBox.Show(response, "Foutmelding", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             else
             {
-                MessageBox.Show(response, "Foutmelding", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                var response = await AdemicoClientV1.CheckConnectionV1(new HttpClient());
+                if (response != null)
+                {
+                    ToolStripStatusLabel.Text = response;
+                }
+                else
+                {
+                    MessageBox.Show(response, "Foutmelding", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }                
         }
 
         private void TextBoxLegalEntityId_TextChanged(object sender, EventArgs e)
@@ -140,46 +155,93 @@ namespace MarSync.MarioMenu.Admin
             string peppolSupportedDocument = TextBoxSupportedDocument.Text; // Example supported document, e.g., "PEPPOL_BIS_BILLING_UBL_INVOICE_V3"
             string legalEntityId = TextBoxLegalEntityId.Text; // Example legal entity ID, if needed
 
-            try
-            {
-                var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
-                    country,
-                    peppolRegistrationScheme,
-                    peppolRegistrationIdentifier,
-                    peppolSupportedDocument,
-                    legalEntityId);
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {                
+                try
+                {
+                    var respons = await AdemicoClientV2.GetPeppolRegistrationAsync(
+                        country,
+                        peppolRegistrationScheme,
+                        peppolRegistrationIdentifier,
+                        peppolSupportedDocument,
+                        legalEntityId);
 
-                if (respons.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                    if (respons.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
+                    }
+
+                    if (!string.IsNullOrEmpty(respons.ResponseBody))
+                    {
+                        var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
+                        RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = "No response body.";
+                    }
                 }
-                else if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
-                }
-                else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
-                }
-                else
-                {
-                    ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
+                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
                 }
 
-                if (!string.IsNullOrEmpty(respons.ResponseBody))
-                {
-                    var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
-                    RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
-                }
-                else
-                {
-                    ToolStripStatusLabel.Text = "No response body.";
-                }
             }
-            catch (Exception ex)
+            else
             {
-                ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
-            }
+                try
+                {
+                    var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
+                        country,
+                        peppolRegistrationScheme,
+                        peppolRegistrationIdentifier,
+                        peppolSupportedDocument,
+                        legalEntityId);
+
+                    if (respons.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
+                    }
+
+                    if (!string.IsNullOrEmpty(respons.ResponseBody))
+                    {
+                        var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
+                        RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = "No response body.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                }
+            }                
         }
 
         private void RadioButtonGetSent_CheckedChanged(object sender, EventArgs e)
@@ -572,59 +634,120 @@ namespace MarSync.MarioMenu.Admin
 
         async private void ButtonGetUBLDocument_Click(object sender, EventArgs e)
         {
-            string ademicoUrl = SharedGlobals.AdemicoApiUrlV1;
-            string accessToken = SharedGlobals.AdemicoAccessToken;
-            string username = SharedGlobals.AdemicoUsername;
-            string password = SharedGlobals.AdemicoPassword;
 
-            string transmissionId = TextBoxTransmissionId.Text.Trim();
-
-            string requestUrl = $"{ademicoUrl}/api/peppol/v1/invoices/{transmissionId}/ubl?accessToken={accessToken}";
-
-            StatusStrip.Text = "Bezig...";
-            try
+            if (SharedGlobals.AdemicoApiUsedV2)
             {
-                using (var client = new HttpClient())
+                string transmissionId = TextBoxTransmissionId.Text.Trim();
+
+                StatusStrip.Text = "Bezig...";
+                try
                 {
-                    var byteArray = Encoding.ASCII.GetBytes($"{username}:{password}");
-                    client.DefaultRequestHeaders.Authorization =
-                        new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+                    var result = await AdemicoClientV2.PeppolInvoiceReceiver.GetUblInvoiceAsync(transmissionId);
 
-                    // Accept XML
-                    client.DefaultRequestHeaders.Accept.Clear();
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/xml"));
-
-                    // Make the GET request
-                    HttpResponseMessage response = await client.GetAsync(requestUrl);
-                    response.EnsureSuccessStatusCode();
-
-                    // Read the content
-                    string invoiceXml = await response.Content.ReadAsStringAsync();
-
-                    // Save to file
-                    string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
-
-                    // Save to file in My Documents
-                    using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
+                    if (result.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        await writer.WriteAsync(invoiceXml);
+                        // Save to file
+                        string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+
+                        // Save to file in My Documents
+                        using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
+                        {
+                            await writer.WriteAsync(result.ResponseBody);
+                        }
+
+                        StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
+
+                        string message = "UBL Invoice XML retrieved and saved successfully.\n\n" +
+                            $"Invoice saved to: {outputFile}";
+
+                        // Add conversion outcome info if available
+                        if (!string.IsNullOrWhiteSpace(result.ConversionOutcome))
+                        {
+                            message += $"\n\nConversion outcome: {result.ConversionOutcome}";
+                        }
+
+                        MessageBox.Show(
+                            message,
+                            "Success",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
                     }
-
-                    StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
-
+                    else
+                    {
+                        StatusStrip.Text = $"Error: {result.StatusCode}";
+                        MessageBox.Show(
+                            $"Failed to retrieve invoice.\n\nStatus: {result.StatusCode}\n\n{result.ResponseBody}",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusStrip.Text = "Error: " + ex.Message;
                     MessageBox.Show(
-                        "UBL Invoice XML retrieved and saved successfully.\n\n" +
-                        $"Invoice saved to: {outputFile}",
-                        "Success",
+                        $"Exception: {ex.Message}",
+                        "Error",
                         MessageBoxButtons.OK,
-                        MessageBoxIcon.Information
+                        MessageBoxIcon.Error
                     );
                 }
             }
-            catch (Exception ex)
+            else
             {
-                StatusStrip.Text = "Error: " + ex.Message;
+                string transmissionId = TextBoxTransmissionId.Text.Trim();
+
+                StatusStrip.Text = "Bezig...";
+                try
+                {
+                    var result = await AdemicoClientV1.PeppolInvoiceReceiver.GetUblInvoiceAsync(transmissionId);
+
+                    if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        // Save to file
+                        string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+
+                        // Save to file in My Documents
+                        using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
+                        {
+                            await writer.WriteAsync(result.ResponseBody);
+                        }
+
+                        StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
+
+                        MessageBox.Show(
+                            "UBL Invoice XML retrieved and saved successfully.\n\n" +
+                            $"Invoice saved to: {outputFile}",
+                            "Success",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
+                    }
+                    else
+                    {
+                        StatusStrip.Text = $"Error: {result.StatusCode}";
+                        MessageBox.Show(
+                            $"Failed to retrieve invoice.\n\nStatus: {result.StatusCode}\n\n{result.ResponseBody}",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusStrip.Text = "Error: " + ex.Message;
+                    MessageBox.Show(
+                        $"Exception: {ex.Message}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
             }
         }
 
@@ -1315,54 +1438,109 @@ namespace MarSync.MarioMenu.Admin
         {
             ToolStripStatusLabel.Text = "Bezig...";
             string entitiesResult;
-            try
+
+            if (SharedGlobals.AdemicoApiUsedV2)
             {
-                var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
-                    country: "BE",
-                    peppolRegistrationScheme: "",
-                    peppolRegistrationIdentifier: "",
-                    peppolSupportedDocument: "",
-                    legalEntityId: "",
-                    page: 0,
-                    pageSize: 100);
+                try
+                {
+                    var respons = await AdemicoClientV2.GetPeppolRegistrationAsync(
+                        country: "BE",
+                        peppolRegistrationScheme: "",
+                        peppolRegistrationIdentifier: "",
+                        peppolSupportedDocument: "",
+                        legalEntityId: "",
+                        page: 0,
+                        pageSize: 100);
 
-                if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
-                    return;
-                }
-                else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
-                    return;
-                }
-                else if (respons.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    ToolStripStatusLabel.Text = "Registration(s) found (200).";
-                }
-                else
-                {
-                    ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
-                    return;
-                }
+                    if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
+                        return;
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
+                        return;
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
+                        return;
+                    }
 
-                if (!string.IsNullOrEmpty(respons.ResponseBody))
-                {
-                    var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
-                    entitiesResult = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
-                    RichTextBoxResult.Text = entitiesResult;
+                    if (!string.IsNullOrEmpty(respons.ResponseBody))
+                    {
+                        var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
+                        entitiesResult = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                        RichTextBoxResult.Text = entitiesResult;
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = "No response body.";
+                        return;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = "No response body.";
+                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
                     return;
                 }
             }
-            catch (Exception ex)
+            else
             {
-                ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
-                return;
-            }
+                try
+                {
+                    var respons = await AdemicoClientV1.GetPeppolRegistrationAsync(
+                        country: "BE",
+                        peppolRegistrationScheme: "",
+                        peppolRegistrationIdentifier: "",
+                        peppolSupportedDocument: "",
+                        legalEntityId: "",
+                        page: 0,
+                        pageSize: 100);
+
+                    if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    {
+                        ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
+                        return;
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
+                        return;
+                    }
+                    else if (respons.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
+                        return;
+                    }
+
+                    if (!string.IsNullOrEmpty(respons.ResponseBody))
+                    {
+                        var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
+                        entitiesResult = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                        RichTextBoxResult.Text = entitiesResult;
+                    }
+                    else
+                    {
+                        ToolStripStatusLabel.Text = "No response body.";
+                        return;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                    return;
+                }
+            }                
 
             Cursor.Current = Cursors.WaitCursor;
             Application.DoEvents();
@@ -1778,5 +1956,7 @@ namespace MarSync.MarioMenu.Admin
 
             Console.WriteLine(report);
         }
+
+ 
     }
 }
