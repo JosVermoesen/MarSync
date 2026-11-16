@@ -1166,6 +1166,7 @@ namespace MarSync
             string peppolRegistrationIdentifier,
             string peppolSupportedDocument,
             string legalEntityId,
+            string name = null,
             int page = 0,
             int pageSize = 100,
             CancellationToken cancellationToken = default)
@@ -1177,7 +1178,7 @@ namespace MarSync
             if (!string.IsNullOrWhiteSpace(peppolRegistrationIdentifier)) queryParams.Add("peppolRegistrationIdentifier=" + Encode(peppolRegistrationIdentifier));
             if (!string.IsNullOrWhiteSpace(peppolSupportedDocument)) queryParams.Add("peppolSupportedDocument=" + Encode(peppolSupportedDocument));
             if (!string.IsNullOrWhiteSpace(legalEntityId)) queryParams.Add("legalEntityId=" + Encode(legalEntityId));
-            if (!string.IsNullOrWhiteSpace(peppolSupportedDocument)) queryParams.Add("peppolSupportedDocument=" + Encode(peppolSupportedDocument));
+            if (!string.IsNullOrWhiteSpace(name)) queryParams.Add("name=" + Encode(name));
 
             queryParams.Add("page=" + page.ToString());
             queryParams.Add("pageSize=" + pageSize.ToString());
@@ -1692,6 +1693,65 @@ namespace MarSync
             public int Page { get; set; }
             public int PageSize { get; set; }
         }
+
+        // Peppol Registration Response Models for V2 API
+        public class PeppolIdentifier
+        {
+            [JsonPropertyName("scheme")]
+            public string Scheme { get; set; }
+
+            [JsonPropertyName("identifier")]
+            public string Identifier { get; set; }
+        }
+
+        public class LegalEntityDetails
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("countryCode")]
+            public string CountryCode { get; set; }
+
+            [JsonPropertyName("registrationDate")]
+            public DateTime? RegistrationDate { get; set; }
+
+            [JsonPropertyName("websiteURL")]
+            public string WebsiteURL { get; set; }
+
+            [JsonPropertyName("peppolAdditionalIdentifiers")]
+            public List<PeppolIdentifier> PeppolAdditionalIdentifiers { get; set; }
+        }
+
+        public class PeppolRegistrationResponseV2
+        {
+            [JsonPropertyName("peppolIdentifier")]
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+
+            [JsonPropertyName("supportedDocuments")]
+            public List<string> SupportedDocuments { get; set; }
+        }
+
+        public class PeppolRegistrationEntityV2
+        {
+            [JsonPropertyName("legalEntityId")]
+            public int LegalEntityId { get; set; }
+
+            [JsonPropertyName("legalEntityDetails")]
+            public LegalEntityDetails LegalEntityDetails { get; set; }
+
+            [JsonPropertyName("peppolRegistrations")]
+            public List<PeppolRegistrationResponseV2> PeppolRegistrations { get; set; }
+        }
+
+        public class PeppolRegistrationsResponseV2
+        {
+            [JsonPropertyName("legalEntities")]
+            public List<PeppolRegistrationEntityV2> LegalEntities { get; set; }
+
+            [JsonPropertyName("pagination")]
+            public Pagination Pagination { get; set; }
+        }
+
         public class Root
         {
             public Pagination Pagination { get; set; }

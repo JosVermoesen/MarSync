@@ -94,6 +94,8 @@
             this.ButtonEntityNew = new System.Windows.Forms.Button();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
+            this.TextBoxName = new System.Windows.Forms.TextBox();
+            this.label14 = new System.Windows.Forms.Label();
             this.TabControlVariousActions.SuspendLayout();
             this.TabActions.SuspendLayout();
             this.TabNotifications.SuspendLayout();
@@ -132,6 +134,8 @@
             // 
             // TabActions
             // 
+            this.TabActions.Controls.Add(this.TextBoxName);
+            this.TabActions.Controls.Add(this.label14);
             this.TabActions.Controls.Add(this.DetectorTest3);
             this.TabActions.Controls.Add(this.DetectorTest2);
             this.TabActions.Controls.Add(this.DetectorTest1);
@@ -265,28 +269,28 @@
             // 
             // TextBoxCountryCode
             // 
-            this.TextBoxCountryCode.Location = new System.Drawing.Point(103, 62);
+            this.TextBoxCountryCode.Location = new System.Drawing.Point(103, 91);
             this.TextBoxCountryCode.Name = "TextBoxCountryCode";
             this.TextBoxCountryCode.Size = new System.Drawing.Size(77, 20);
             this.TextBoxCountryCode.TabIndex = 10;
             // 
             // TextBoxRegScheme
             // 
-            this.TextBoxRegScheme.Location = new System.Drawing.Point(103, 96);
+            this.TextBoxRegScheme.Location = new System.Drawing.Point(103, 117);
             this.TextBoxRegScheme.Name = "TextBoxRegScheme";
             this.TextBoxRegScheme.Size = new System.Drawing.Size(352, 20);
             this.TextBoxRegScheme.TabIndex = 11;
             // 
             // TextBoxRegIdentifier
             // 
-            this.TextBoxRegIdentifier.Location = new System.Drawing.Point(103, 126);
+            this.TextBoxRegIdentifier.Location = new System.Drawing.Point(103, 143);
             this.TextBoxRegIdentifier.Name = "TextBoxRegIdentifier";
             this.TextBoxRegIdentifier.Size = new System.Drawing.Size(352, 20);
             this.TextBoxRegIdentifier.TabIndex = 12;
             // 
             // TextBoxSupportedDocument
             // 
-            this.TextBoxSupportedDocument.Location = new System.Drawing.Point(103, 159);
+            this.TextBoxSupportedDocument.Location = new System.Drawing.Point(103, 169);
             this.TextBoxSupportedDocument.Name = "TextBoxSupportedDocument";
             this.TextBoxSupportedDocument.Size = new System.Drawing.Size(352, 20);
             this.TextBoxSupportedDocument.TabIndex = 13;
@@ -312,7 +316,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(19, 162);
+            this.label4.Location = new System.Drawing.Point(19, 172);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(76, 13);
             this.label4.TabIndex = 4;
@@ -321,7 +325,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 129);
+            this.label3.Location = new System.Drawing.Point(19, 146);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(36, 13);
             this.label3.TabIndex = 3;
@@ -330,7 +334,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(19, 99);
+            this.label2.Location = new System.Drawing.Point(19, 120);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(66, 13);
             this.label2.TabIndex = 2;
@@ -339,7 +343,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(19, 65);
+            this.label1.Location = new System.Drawing.Point(19, 94);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(56, 13);
             this.label1.TabIndex = 1;
@@ -763,6 +767,22 @@
             this.ToolStripStatusLabel.Size = new System.Drawing.Size(39, 17);
             this.ToolStripStatusLabel.Text = "Ready";
             // 
+            // TextBoxName
+            // 
+            this.TextBoxName.Location = new System.Drawing.Point(103, 65);
+            this.TextBoxName.Name = "TextBoxName";
+            this.TextBoxName.Size = new System.Drawing.Size(347, 20);
+            this.TextBoxName.TabIndex = 28;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(19, 68);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(35, 13);
+            this.label14.TabIndex = 27;
+            this.label14.Text = "Name";
+            // 
             // FormAdminPeppolActions
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -862,5 +882,7 @@
         private System.Windows.Forms.Button DetectorTest1;
         private System.Windows.Forms.Button DetectorTest2;
         private System.Windows.Forms.Button DetectorTest3;
+        private System.Windows.Forms.TextBox TextBoxName;
+        private System.Windows.Forms.Label label14;
     }
 }

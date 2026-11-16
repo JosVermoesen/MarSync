@@ -131,12 +131,14 @@ namespace MarSync.MarioMenu.Admin
             else
             {
                 // If no Legal Entity ID is provided, set default values for Belgium
+                TextBoxName.Text = "Roelandt en Vermoesen bv"; // Default name for Belgium
                 TextBoxCountryCode.Text = "BE"; // Default to Belgium if no Legal Entity ID is provided                                
                 TextBoxRegScheme.Text = "0208"; // Default to 0208 scheme for Belgium  
                 TextBoxRegIdentifier.Text = "0440058217"; // Default to a common identifier for Belgium
                 TextBoxSupportedDocument.Text = "PEPPOL_BIS_BILLING_UBL_INVOICE_V3"; // Default to UBL Invoice for Belgium            
                 TextBoxLegalEntityId.Text = ""; // Default Legal Entity ID for Belgium
 
+                TextBoxName.Enabled = true; // Enable the name field
                 TextBoxRegIdentifier.Enabled = true; // Enable the registration identifier field
                 TextBoxCountryCode.Enabled = true; // Enable the country code field 
                 TextBoxRegScheme.Enabled = true; // Enable the registration scheme field
@@ -149,6 +151,7 @@ namespace MarSync.MarioMenu.Admin
             ToolStripStatusLabel.Text = "Bezig...";
             Application.DoEvents();
 
+            string name = TextBoxName.Text; // Example name
             string country = TextBoxCountryCode.Text; // Example country code
             string peppolRegistrationScheme = TextBoxRegScheme.Text; // Example scheme code, e.g., "0208"
             string peppolRegistrationIdentifier = TextBoxRegIdentifier.Text; // Example identifier, e.g., "0529835180"
@@ -159,38 +162,59 @@ namespace MarSync.MarioMenu.Admin
             {                
                 try
                 {
-                    var respons = await AdemicoClientV2.GetPeppolRegistrationAsync(
-                        country,
-                        peppolRegistrationScheme,
-                        peppolRegistrationIdentifier,
-                        peppolSupportedDocument,
-                        legalEntityId);
+                    var response = await AdemicoClientV2.GetPeppolRegistrationAsync(
+                        name: name,
+                        country: country,
+                        peppolRegistrationScheme: peppolRegistrationScheme,
+                        peppolRegistrationIdentifier: peppolRegistrationIdentifier,
+                        peppolSupportedDocument: peppolSupportedDocument,
+                        legalEntityId: legalEntityId
+                        );
 
-                    if (respons.StatusCode == System.Net.HttpStatusCode.OK)
+                    
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
-                        ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                        if (!string.IsNullOrEmpty(response.ResponseBody))
+                        {
+                            try
+                            {
+                                var deserializedResponse = JsonConvert.DeserializeObject<AdemicoModelsV2.PeppolRegistrationsResponseV2>(response.ResponseBody);
+
+                                if (deserializedResponse?.Pagination?.Count > 0)
+                                {
+                                    ToolStripStatusLabel.Text = $"Registration(s) found (200). Count: {deserializedResponse.Pagination.Count}";
+                                }
+                                else
+                                {
+                                    ToolStripStatusLabel.Text = "No registrations found (200).";
+                                }
+
+                                var deserializedString = JsonConvert.DeserializeObject(response.ResponseBody);
+                                RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                            }
+                            catch
+                            {
+                                ToolStripStatusLabel.Text = "Registration(s) found (200).";
+                                var deserializedString = JsonConvert.DeserializeObject(response.ResponseBody);
+                                RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
+                            }
+                        }
+                        else
+                        {
+                            ToolStripStatusLabel.Text = "No response body.";
+                        }
                     }
-                    else if (respons.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                    else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
                         ToolStripStatusLabel.Text = "Unauthorized (401) — check credentials.";
                     }
-                    else if (respons.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                     {
                         ToolStripStatusLabel.Text = "Not found (404) — no matching registration.";
                     }
                     else
                     {
-                        ToolStripStatusLabel.Text = $"Status: {(int)respons.StatusCode} {respons.StatusCode}";
-                    }
-
-                    if (!string.IsNullOrEmpty(respons.ResponseBody))
-                    {
-                        var deserializedString = JsonConvert.DeserializeObject(respons.ResponseBody);
-                        RichTextBoxResult.Text = JsonConvert.SerializeObject(deserializedString, Newtonsoft.Json.Formatting.Indented);
-                    }
-                    else
-                    {
-                        ToolStripStatusLabel.Text = "No response body.";
+                        ToolStripStatusLabel.Text = $"Status: {(int)response.StatusCode} {response.StatusCode}";
                     }
                 }
                 catch (Exception ex)
