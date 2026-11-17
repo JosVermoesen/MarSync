@@ -3911,7 +3911,7 @@ namespace MarSync.MarioMenu.Actions
         {
             if (string.IsNullOrWhiteSpace(TextBoxTransmissionId.Text) || TextBoxTransmissionId.Text.Length != 32)
             {
-                MessageBox.Show("Breng het transmissie ID van een document in bestaande uit het juiste aantal tekens.", "Invoer vereist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Breng het transmissie ID van een document in bestaande uit het exact aantal tekens.", "Invoer vereist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -3928,7 +3928,8 @@ namespace MarSync.MarioMenu.Actions
                     {
                         // Save to file
                         string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+                        string exactFileName = DateAndTime.Now.ToString("yyyyMMdd_HHmmss") + "_peppol.xml";
+                        string outputFile = Path.Combine(myDocumentsFolderPath,exactFileName);
 
                         // Save to file in My Documents
                         using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
@@ -3936,19 +3937,19 @@ namespace MarSync.MarioMenu.Actions
                             await writer.WriteAsync(result.ResponseBody);
                         }
 
-                        StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
+                        StatusStrip.Text = "UBL XML document opgehaald en bewaard met succes.";
 
-                        string message = "UBL Invoice XML retrieved and saved successfully.\n\n" +
-                            $"Invoice saved to: {outputFile}";
+                        string message = "UBL XML document opgehaald en bewaard met succes.\n\n" +
+                            $"Document bewaard als:\n\n{exactFileName}\n\nin map Documenten";
 
                         // Add conversion outcome info if available
                         if (!string.IsNullOrWhiteSpace(result.ConversionOutcome))
                         {
-                            message += $"\n\nConversion outcome: {result.ConversionOutcome}";
+                            message += $"\n\nConversie resultaat: {result.ConversionOutcome}";
                         }                        
 
                         var answer = MessageBox.Show(
-                            message + "\n\nwerd bewaard.\n\nFolder MijnDocumenten openen?", "Document opgehaald met succes",
+                            message + "\n\nMap Documenten openen?", "Document opgehaald met succes",
                                 MessageBoxButtons.YesNo,
                                 MessageBoxIcon.Question,
                                 MessageBoxDefaultButton.Button2);
@@ -3991,7 +3992,7 @@ namespace MarSync.MarioMenu.Actions
                     {
                         // Save to file
                         string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+                        string outputFile = Path.Combine(myDocumentsFolderPath, DateTime.Now.ToString("yyyyMMdd_HHmmss") + "_peppol.xml");
 
                         // Save to file in My Documents
                         using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
