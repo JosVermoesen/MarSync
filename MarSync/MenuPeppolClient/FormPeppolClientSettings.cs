@@ -209,5 +209,10 @@ namespace MarSync.MenuPeppolClient
                 Properties.Settings.Default.Save();
             }
         }
+
+        private void ButtonClose_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
     }
 }

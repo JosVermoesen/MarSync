@@ -135,7 +135,7 @@
             this.TabControlVariousActions.Location = new System.Drawing.Point(0, 0);
             this.TabControlVariousActions.Name = "TabControlVariousActions";
             this.TabControlVariousActions.SelectedIndex = 0;
-            this.TabControlVariousActions.Size = new System.Drawing.Size(401, 517);
+            this.TabControlVariousActions.Size = new System.Drawing.Size(408, 521);
             this.TabControlVariousActions.TabIndex = 0;
             this.TabControlVariousActions.SelectedIndexChanged += new System.EventHandler(this.TabControlVariousActions_SelectedIndexChanged);
             // 
@@ -144,6 +144,7 @@
             this.TabMonitor.BackColor = System.Drawing.Color.Transparent;
             this.TabMonitor.Controls.Add(this.ButtonGetDocument);
             this.TabMonitor.Controls.Add(this.TextBoxTransmissionId);
+            this.TabMonitor.Controls.Add(this.ButtonClose);
             this.TabMonitor.Controls.Add(this.label1);
             this.TabMonitor.Controls.Add(this.ButtonMyStatusReport);
             this.TabMonitor.Controls.Add(this.ComboBoxBuyerOrSeller);
@@ -168,47 +169,44 @@
             this.TabMonitor.Controls.Add(this.ButtonTimer);
             this.TabMonitor.Location = new System.Drawing.Point(4, 22);
             this.TabMonitor.Name = "TabMonitor";
-            this.TabMonitor.Size = new System.Drawing.Size(393, 491);
+            this.TabMonitor.Size = new System.Drawing.Size(400, 495);
             this.TabMonitor.TabIndex = 5;
             this.TabMonitor.Text = "Monitor";
             // 
             // ButtonGetDocument
             // 
-            this.ButtonGetDocument.Location = new System.Drawing.Point(239, 311);
+            this.ButtonGetDocument.Location = new System.Drawing.Point(239, 409);
             this.ButtonGetDocument.Name = "ButtonGetDocument";
             this.ButtonGetDocument.Size = new System.Drawing.Size(142, 26);
             this.ButtonGetDocument.TabIndex = 64;
-            this.ButtonGetDocument.Text = "Document via ID Ophalen";
+            this.ButtonGetDocument.Text = "Document Ophalen";
             this.ButtonGetDocument.UseVisualStyleBackColor = true;
-            this.ButtonGetDocument.Visible = false;
             this.ButtonGetDocument.Click += new System.EventHandler(this.ButtonGetDocument_Click);
             // 
             // TextBoxTransmissionId
             // 
             this.TextBoxTransmissionId.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.TextBoxTransmissionId.Location = new System.Drawing.Point(13, 343);
+            this.TextBoxTransmissionId.Location = new System.Drawing.Point(13, 441);
             this.TextBoxTransmissionId.Name = "TextBoxTransmissionId";
             this.TextBoxTransmissionId.Size = new System.Drawing.Size(365, 26);
             this.TextBoxTransmissionId.TabIndex = 63;
-            this.TextBoxTransmissionId.Visible = false;
             // 
             // label1
             // 
             this.label1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(13, 313);
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(13, 411);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(217, 27);
             this.label1.TabIndex = 61;
-            this.label1.Text = "Diversen Manueel";
+            this.label1.Text = "{transmissionId} manueel ophalen";
             this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.label1.Visible = false;
             // 
             // ButtonMyStatusReport
             // 
             this.ButtonMyStatusReport.Enabled = false;
             this.ButtonMyStatusReport.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonMyStatusReport.Location = new System.Drawing.Point(121, 375);
+            this.ButtonMyStatusReport.Location = new System.Drawing.Point(121, 313);
             this.ButtonMyStatusReport.Name = "ButtonMyStatusReport";
             this.ButtonMyStatusReport.Size = new System.Drawing.Size(109, 89);
             this.ButtonMyStatusReport.TabIndex = 60;
@@ -223,7 +221,7 @@
             this.ComboBoxBuyerOrSeller.Items.AddRange(new object[] {
             "BE Klanten (B2B)",
             "BE Leveranciers"});
-            this.ComboBoxBuyerOrSeller.Location = new System.Drawing.Point(243, 443);
+            this.ComboBoxBuyerOrSeller.Location = new System.Drawing.Point(243, 381);
             this.ComboBoxBuyerOrSeller.Name = "ComboBoxBuyerOrSeller";
             this.ComboBoxBuyerOrSeller.Size = new System.Drawing.Size(139, 21);
             this.ComboBoxBuyerOrSeller.TabIndex = 59;
@@ -330,7 +328,7 @@
             // 
             this.ButtonUpdateBEPartiesSupported.BackColor = System.Drawing.Color.WhiteSmoke;
             this.ButtonUpdateBEPartiesSupported.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonUpdateBEPartiesSupported.Location = new System.Drawing.Point(243, 375);
+            this.ButtonUpdateBEPartiesSupported.Location = new System.Drawing.Point(243, 313);
             this.ButtonUpdateBEPartiesSupported.Name = "ButtonUpdateBEPartiesSupported";
             this.ButtonUpdateBEPartiesSupported.Size = new System.Drawing.Size(139, 62);
             this.ButtonUpdateBEPartiesSupported.TabIndex = 33;
@@ -454,7 +452,7 @@
             this.ButtonTimer.BackColor = System.Drawing.Color.Azure;
             this.ButtonTimer.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.ButtonTimer.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.ButtonTimer.Location = new System.Drawing.Point(13, 375);
+            this.ButtonTimer.Location = new System.Drawing.Point(13, 313);
             this.ButtonTimer.Name = "ButtonTimer";
             this.ButtonTimer.Size = new System.Drawing.Size(102, 91);
             this.ButtonTimer.TabIndex = 11;
@@ -469,7 +467,7 @@
             this.TabReceiveDocument.Controls.Add(this.LabelResponseCode);
             this.TabReceiveDocument.Location = new System.Drawing.Point(4, 22);
             this.TabReceiveDocument.Name = "TabReceiveDocument";
-            this.TabReceiveDocument.Size = new System.Drawing.Size(393, 491);
+            this.TabReceiveDocument.Size = new System.Drawing.Size(400, 495);
             this.TabReceiveDocument.TabIndex = 3;
             this.TabReceiveDocument.Text = "Ontvangen";
             this.TabReceiveDocument.UseVisualStyleBackColor = true;
@@ -485,7 +483,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel2.Location = new System.Drawing.Point(0, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(393, 231);
+            this.panel2.Size = new System.Drawing.Size(400, 231);
             this.panel2.TabIndex = 18;
             // 
             // LabelForReactions
@@ -559,9 +557,9 @@
             this.PanelReactions.Controls.Add(this.LabelClarification);
             this.PanelReactions.Controls.Add(this.TextBoxNote);
             this.PanelReactions.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.PanelReactions.Location = new System.Drawing.Point(0, 307);
+            this.PanelReactions.Location = new System.Drawing.Point(0, 311);
             this.PanelReactions.Name = "PanelReactions";
-            this.PanelReactions.Size = new System.Drawing.Size(393, 184);
+            this.PanelReactions.Size = new System.Drawing.Size(400, 184);
             this.PanelReactions.TabIndex = 11;
             this.PanelReactions.Visible = false;
             // 
@@ -974,9 +972,9 @@
             // ButtonClose
             // 
             this.ButtonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.ButtonClose.Location = new System.Drawing.Point(556, 283);
+            this.ButtonClose.Location = new System.Drawing.Point(242, 151);
             this.ButtonClose.Name = "ButtonClose";
-            this.ButtonClose.Size = new System.Drawing.Size(90, 55);
+            this.ButtonClose.Size = new System.Drawing.Size(139, 31);
             this.ButtonClose.TabIndex = 41;
             this.ButtonClose.Text = "Sluiten";
             this.ButtonClose.UseVisualStyleBackColor = true;
@@ -986,9 +984,9 @@
             // 
             this.StatusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.ToolStripStatusLabel});
-            this.StatusStrip.Location = new System.Drawing.Point(0, 495);
+            this.StatusStrip.Location = new System.Drawing.Point(0, 499);
             this.StatusStrip.Name = "StatusStrip";
-            this.StatusStrip.Size = new System.Drawing.Size(401, 22);
+            this.StatusStrip.Size = new System.Drawing.Size(408, 22);
             this.StatusStrip.TabIndex = 10;
             this.StatusStrip.Text = "statusStrip1";
             // 
@@ -1003,11 +1001,10 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.ButtonClose;
-            this.ClientSize = new System.Drawing.Size(401, 517);
+            this.ClientSize = new System.Drawing.Size(408, 521);
             this.ControlBox = false;
             this.Controls.Add(this.StatusStrip);
             this.Controls.Add(this.TabControlVariousActions);
-            this.Controls.Add(this.ButtonClose);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;

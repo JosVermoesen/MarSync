@@ -34,6 +34,14 @@ namespace MarSync.MarioMenu.Admin
         {
             InitializeComponent();
             Text = "Admin - Peppol Acties" + " [" + SharedGlobals.ApiModus + "]";
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                Text = Text + " (API V2)";
+            }
+            else
+            {
+                Text = Text + " (API V1)";
+            }
             httpCheck = new HttpClient();
 
             RadioButtonGetReceived.Checked = true;

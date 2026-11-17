@@ -43,14 +43,15 @@
             this.GroupBoxAPI = new System.Windows.Forms.GroupBox();
             this.RadioButtonV2 = new System.Windows.Forms.RadioButton();
             this.RadioButtonV1 = new System.Windows.Forms.RadioButton();
+            this.ButtonClose = new System.Windows.Forms.Button();
             this.GroupBoxAPI.SuspendLayout();
             this.SuspendLayout();
             // 
             // ButtonValidateToggleTabs
             // 
-            this.ButtonValidateToggleTabs.Location = new System.Drawing.Point(287, 213);
+            this.ButtonValidateToggleTabs.Location = new System.Drawing.Point(281, 186);
             this.ButtonValidateToggleTabs.Name = "ButtonValidateToggleTabs";
-            this.ButtonValidateToggleTabs.Size = new System.Drawing.Size(81, 20);
+            this.ButtonValidateToggleTabs.Size = new System.Drawing.Size(81, 31);
             this.ButtonValidateToggleTabs.TabIndex = 41;
             this.ButtonValidateToggleTabs.Text = "Valideren";
             this.ButtonValidateToggleTabs.UseVisualStyleBackColor = true;
@@ -58,7 +59,7 @@
             // 
             // TextBoxGuidToggleTabsToValidate
             // 
-            this.TextBoxGuidToggleTabsToValidate.Location = new System.Drawing.Point(12, 213);
+            this.TextBoxGuidToggleTabsToValidate.Location = new System.Drawing.Point(9, 186);
             this.TextBoxGuidToggleTabsToValidate.Name = "TextBoxGuidToggleTabsToValidate";
             this.TextBoxGuidToggleTabsToValidate.Size = new System.Drawing.Size(269, 20);
             this.TextBoxGuidToggleTabsToValidate.TabIndex = 40;
@@ -66,7 +67,7 @@
             // LabelToggleTabs
             // 
             this.LabelToggleTabs.AutoSize = true;
-            this.LabelToggleTabs.Location = new System.Drawing.Point(12, 197);
+            this.LabelToggleTabs.Location = new System.Drawing.Point(9, 170);
             this.LabelToggleTabs.Name = "LabelToggleTabs";
             this.LabelToggleTabs.Size = new System.Drawing.Size(142, 13);
             this.LabelToggleTabs.TabIndex = 39;
@@ -74,9 +75,9 @@
             // 
             // ButtonValidateProdGuid
             // 
-            this.ButtonValidateProdGuid.Location = new System.Drawing.Point(287, 165);
+            this.ButtonValidateProdGuid.Location = new System.Drawing.Point(281, 139);
             this.ButtonValidateProdGuid.Name = "ButtonValidateProdGuid";
-            this.ButtonValidateProdGuid.Size = new System.Drawing.Size(81, 20);
+            this.ButtonValidateProdGuid.Size = new System.Drawing.Size(81, 31);
             this.ButtonValidateProdGuid.TabIndex = 38;
             this.ButtonValidateProdGuid.Text = "Valideren";
             this.ButtonValidateProdGuid.UseVisualStyleBackColor = true;
@@ -84,7 +85,7 @@
             // 
             // TextBoxProdGuidToValidate
             // 
-            this.TextBoxProdGuidToValidate.Location = new System.Drawing.Point(15, 166);
+            this.TextBoxProdGuidToValidate.Location = new System.Drawing.Point(12, 139);
             this.TextBoxProdGuidToValidate.Name = "TextBoxProdGuidToValidate";
             this.TextBoxProdGuidToValidate.Size = new System.Drawing.Size(266, 20);
             this.TextBoxProdGuidToValidate.TabIndex = 37;
@@ -92,7 +93,7 @@
             // LabelProdGuid
             // 
             this.LabelProdGuid.AutoSize = true;
-            this.LabelProdGuid.Location = new System.Drawing.Point(15, 150);
+            this.LabelProdGuid.Location = new System.Drawing.Point(9, 123);
             this.LabelProdGuid.Name = "LabelProdGuid";
             this.LabelProdGuid.Size = new System.Drawing.Size(130, 13);
             this.LabelProdGuid.TabIndex = 36;
@@ -100,9 +101,9 @@
             // 
             // ButtonValidateTestGuid
             // 
-            this.ButtonValidateTestGuid.Location = new System.Drawing.Point(287, 116);
+            this.ButtonValidateTestGuid.Location = new System.Drawing.Point(281, 90);
             this.ButtonValidateTestGuid.Name = "ButtonValidateTestGuid";
-            this.ButtonValidateTestGuid.Size = new System.Drawing.Size(81, 20);
+            this.ButtonValidateTestGuid.Size = new System.Drawing.Size(81, 30);
             this.ButtonValidateTestGuid.TabIndex = 35;
             this.ButtonValidateTestGuid.Text = "Valideren";
             this.ButtonValidateTestGuid.UseVisualStyleBackColor = true;
@@ -110,7 +111,7 @@
             // 
             // TextBoxTestGuidToValidate
             // 
-            this.TextBoxTestGuidToValidate.Location = new System.Drawing.Point(15, 116);
+            this.TextBoxTestGuidToValidate.Location = new System.Drawing.Point(9, 90);
             this.TextBoxTestGuidToValidate.Name = "TextBoxTestGuidToValidate";
             this.TextBoxTestGuidToValidate.Size = new System.Drawing.Size(266, 20);
             this.TextBoxTestGuidToValidate.TabIndex = 34;
@@ -118,7 +119,7 @@
             // LabelTestGuid
             // 
             this.LabelTestGuid.AutoSize = true;
-            this.LabelTestGuid.Location = new System.Drawing.Point(15, 100);
+            this.LabelTestGuid.Location = new System.Drawing.Point(12, 73);
             this.LabelTestGuid.Name = "LabelTestGuid";
             this.LabelTestGuid.Size = new System.Drawing.Size(103, 13);
             this.LabelTestGuid.TabIndex = 33;
@@ -126,9 +127,9 @@
             // 
             // ButtonValidate
             // 
-            this.ButtonValidate.Location = new System.Drawing.Point(287, 264);
+            this.ButtonValidate.Location = new System.Drawing.Point(284, 239);
             this.ButtonValidate.Name = "ButtonValidate";
-            this.ButtonValidate.Size = new System.Drawing.Size(74, 23);
+            this.ButtonValidate.Size = new System.Drawing.Size(74, 24);
             this.ButtonValidate.TabIndex = 44;
             this.ButtonValidate.Text = "Valideren";
             this.ButtonValidate.UseVisualStyleBackColor = true;
@@ -137,7 +138,7 @@
             // 
             // TextBoxIsAdminPassword
             // 
-            this.TextBoxIsAdminPassword.Location = new System.Drawing.Point(12, 267);
+            this.TextBoxIsAdminPassword.Location = new System.Drawing.Point(9, 239);
             this.TextBoxIsAdminPassword.Name = "TextBoxIsAdminPassword";
             this.TextBoxIsAdminPassword.PasswordChar = '*';
             this.TextBoxIsAdminPassword.Size = new System.Drawing.Size(269, 20);
@@ -147,7 +148,7 @@
             // CheckBoxIsAdmin
             // 
             this.CheckBoxIsAdmin.AutoSize = true;
-            this.CheckBoxIsAdmin.Location = new System.Drawing.Point(15, 244);
+            this.CheckBoxIsAdmin.Location = new System.Drawing.Point(9, 217);
             this.CheckBoxIsAdmin.Name = "CheckBoxIsAdmin";
             this.CheckBoxIsAdmin.Size = new System.Drawing.Size(133, 17);
             this.CheckBoxIsAdmin.TabIndex = 42;
@@ -162,7 +163,7 @@
             this.GroupBoxAPI.Enabled = false;
             this.GroupBoxAPI.Location = new System.Drawing.Point(15, 12);
             this.GroupBoxAPI.Name = "GroupBoxAPI";
-            this.GroupBoxAPI.Size = new System.Drawing.Size(343, 50);
+            this.GroupBoxAPI.Size = new System.Drawing.Size(263, 50);
             this.GroupBoxAPI.TabIndex = 45;
             this.GroupBoxAPI.TabStop = false;
             this.GroupBoxAPI.Text = "API Versie";
@@ -182,7 +183,7 @@
             // RadioButtonV1
             // 
             this.RadioButtonV1.AutoSize = true;
-            this.RadioButtonV1.Location = new System.Drawing.Point(291, 19);
+            this.RadioButtonV1.Location = new System.Drawing.Point(200, 19);
             this.RadioButtonV1.Name = "RadioButtonV1";
             this.RadioButtonV1.Size = new System.Drawing.Size(46, 17);
             this.RadioButtonV1.TabIndex = 0;
@@ -190,11 +191,23 @@
             this.RadioButtonV1.Text = "1.13";
             this.RadioButtonV1.UseVisualStyleBackColor = true;
             // 
+            // ButtonClose
+            // 
+            this.ButtonClose.Location = new System.Drawing.Point(284, 31);
+            this.ButtonClose.Name = "ButtonClose";
+            this.ButtonClose.Size = new System.Drawing.Size(78, 31);
+            this.ButtonClose.TabIndex = 46;
+            this.ButtonClose.Text = "Sluiten";
+            this.ButtonClose.UseVisualStyleBackColor = true;
+            this.ButtonClose.Click += new System.EventHandler(this.ButtonClose_Click);
+            // 
             // FormPeppolClientSettings
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(376, 299);
+            this.CancelButton = this.ButtonClose;
+            this.ClientSize = new System.Drawing.Size(376, 275);
+            this.Controls.Add(this.ButtonClose);
             this.Controls.Add(this.GroupBoxAPI);
             this.Controls.Add(this.ButtonValidate);
             this.Controls.Add(this.TextBoxIsAdminPassword);
@@ -236,5 +249,6 @@
         private System.Windows.Forms.GroupBox GroupBoxAPI;
         private System.Windows.Forms.RadioButton RadioButtonV2;
         private System.Windows.Forms.RadioButton RadioButtonV1;
+        private System.Windows.Forms.Button ButtonClose;
     }
 }

@@ -2047,7 +2047,7 @@ namespace MarSync.MarioMenu.Actions
                                     MessageBox.Show($"Er is iets misgegaan: {errorMessage}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     return;
                                 }
-                                Console.WriteLine("Notificatie succesvol verwijderd");
+                                Console.WriteLine("Notificatie Reactie op Aankoopdocument succesvol verwijderd");
                             }
                             else
                             {
@@ -2058,7 +2058,7 @@ namespace MarSync.MarioMenu.Actions
                                     MessageBox.Show($"Er is iets misgegaan: {errorMessage}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                     return;
                                 }
-                                Console.WriteLine("Notificatie succesvol verwijderd");
+                                Console.WriteLine("Notificatie Reactie op Aankoopdocument succesvol verwijderd");
                             }
                         }
 
@@ -2075,7 +2075,7 @@ namespace MarSync.MarioMenu.Actions
                                     AdemicoClientV2.ApiResult result = await AdemicoClientV2.DeleteNotificationAsync(id).ConfigureAwait(true);
                                     if (result.StatusCode == HttpStatusCode.OK)
                                     {
-                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notificatie Document {id} met succes verwijder");
                                     }
                                     else if (result.StatusCode == HttpStatusCode.NotFound ||
                                              (result.StatusCode == HttpStatusCode.BadRequest && result.ResponseBody.Contains("cannot be found")))
@@ -2096,7 +2096,7 @@ namespace MarSync.MarioMenu.Actions
                                     AdemicoClientV1.ApiResult result = await AdemicoClientV1.DeleteNotificationAsync(id).ConfigureAwait(true);
                                     if (result.StatusCode == HttpStatusCode.OK)
                                     {
-                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notification {id} deleted successfully");
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Notificatie Document {id} met succes verwijderd");
                                     }
                                     else if (result.StatusCode == HttpStatusCode.NotFound ||
                                              (result.StatusCode == HttpStatusCode.BadRequest && result.ResponseBody.Contains("cannot be found")))
@@ -3907,12 +3907,129 @@ namespace MarSync.MarioMenu.Actions
             }
         }
 
-        private void ButtonGetDocument_Click(object sender, EventArgs e)
+        private async void ButtonGetDocument_Click(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TextBoxTransmissionId.Text) || TextBoxTransmissionId.Text.Length != 32)
             {
-                MessageBox.Show("Breng het transmissie ID van een document in bestaande uit 32 tekens.", "Invoer vereist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Breng het transmissie ID van een document in bestaande uit het juiste aantal tekens.", "Invoer vereist", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
+            }
+
+            if (SharedGlobals.AdemicoApiUsedV2)
+            {
+                string transmissionId = TextBoxTransmissionId.Text.Trim();
+
+                StatusStrip.Text = "Bezig...";
+                try
+                {
+                    var result = await AdemicoClientV2.PeppolInvoiceReceiver.GetUblInvoiceAsync(transmissionId);
+
+                    if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        // Save to file
+                        string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+
+                        // Save to file in My Documents
+                        using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
+                        {
+                            await writer.WriteAsync(result.ResponseBody);
+                        }
+
+                        StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
+
+                        string message = "UBL Invoice XML retrieved and saved successfully.\n\n" +
+                            $"Invoice saved to: {outputFile}";
+
+                        // Add conversion outcome info if available
+                        if (!string.IsNullOrWhiteSpace(result.ConversionOutcome))
+                        {
+                            message += $"\n\nConversion outcome: {result.ConversionOutcome}";
+                        }                        
+
+                        var answer = MessageBox.Show(
+                            message + "\n\nwerd bewaard.\n\nFolder MijnDocumenten openen?", "Document opgehaald met succes",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Question,
+                                MessageBoxDefaultButton.Button2);
+
+                            if (answer == DialogResult.Yes)
+                                OpenFolder(myDocumentsFolderPath);
+                    }
+                    else
+                    {
+                        StatusStrip.Text = $"Error: {result.StatusCode}";
+                        MessageBox.Show(
+                            $"Failed to retrieve invoice.\n\nStatus: {result.StatusCode}\n\n{result.ResponseBody}",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusStrip.Text = "Error: " + ex.Message;
+                    MessageBox.Show(
+                        $"Exception: {ex.Message}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
+            }
+            else
+            {
+                string transmissionId = TextBoxTransmissionId.Text.Trim();
+
+                StatusStrip.Text = "Bezig...";
+                try
+                {
+                    var result = await AdemicoClientV1.PeppolInvoiceReceiver.GetUblInvoiceAsync(transmissionId);
+
+                    if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        // Save to file
+                        string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                        string outputFile = Path.Combine(myDocumentsFolderPath, "invoice.xml");
+
+                        // Save to file in My Documents
+                        using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
+                        {
+                            await writer.WriteAsync(result.ResponseBody);
+                        }
+
+                        StatusStrip.Text = "UBL Invoice XML retrieved and saved successfully.";
+
+                        MessageBox.Show(
+                            "UBL Invoice XML retrieved and saved successfully.\n\n" +
+                            $"Invoice saved to: {outputFile}",
+                            "Success",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Information
+                        );
+                    }
+                    else
+                    {
+                        StatusStrip.Text = $"Error: {result.StatusCode}";
+                        MessageBox.Show(
+                            $"Failed to retrieve invoice.\n\nStatus: {result.StatusCode}\n\n{result.ResponseBody}",
+                            "Error",
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StatusStrip.Text = "Error: " + ex.Message;
+                    MessageBox.Show(
+                        $"Exception: {ex.Message}",
+                        "Error",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Error
+                    );
+                }
             }
         }
     }
