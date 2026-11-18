@@ -118,7 +118,7 @@ namespace MarSync.MarioMenu.Admin
                 {
                     MessageBox.Show(response, "Foutmelding", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-            }                
+            }
         }
 
         private void TextBoxLegalEntityId_TextChanged(object sender, EventArgs e)
@@ -167,7 +167,7 @@ namespace MarSync.MarioMenu.Admin
             string legalEntityId = TextBoxLegalEntityId.Text; // Example legal entity ID, if needed
 
             if (SharedGlobals.AdemicoApiUsedV2)
-            {                
+            {
                 try
                 {
                     var response = await AdemicoClientV2.GetPeppolRegistrationAsync(
@@ -179,7 +179,7 @@ namespace MarSync.MarioMenu.Admin
                         legalEntityId: legalEntityId
                         );
 
-                    
+
                     if (response.StatusCode == System.Net.HttpStatusCode.OK)
                     {
                         if (!string.IsNullOrEmpty(response.ResponseBody))
@@ -273,7 +273,7 @@ namespace MarSync.MarioMenu.Admin
                 {
                     ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
                 }
-            }                
+            }
         }
 
         private void RadioButtonGetSent_CheckedChanged(object sender, EventArgs e)
@@ -459,28 +459,34 @@ namespace MarSync.MarioMenu.Admin
             string identifier9925 = TextBoxIdentifier.Text; // Full VAT number, e.g., "BE0421132626"
             string identifier0208 = TextBoxIdentifier.Text.Substring(2); // Remove country code for identifier, e.g., "0421132626"
 
-            if (!CheckBoxPublishMinimum.Checked)
+            if (SharedGlobals.AdemicoApiUsedV2)
             {
-                geographicalInformation = TextBoxGeographicalInformation.Text;
-                websiteUrl = TextBoxWebsiteUrl.Text; // Optional
-                contactType = "public"; // or "technical"
-                contactName = TextBoxContactName.Text; // Example contact name
-                contactPhoneNumber = TextBoxPhone.Text; // Example phone number
-                contactEmail = TextBoxContactEmail.Text; // Example email
-                additionalInformation = TextBoxAdditionalInformation.Text; // Optional
 
-                if (RadioButtonBothSchemes.Checked)
+            }
+            else
+            {
+                if (!CheckBoxPublishMinimum.Checked)
                 {
-                    var entity = new CreateLegalEntityModel
+                    geographicalInformation = TextBoxGeographicalInformation.Text;
+                    websiteUrl = TextBoxWebsiteUrl.Text; // Optional
+                    contactType = "public"; // or "technical"
+                    contactName = TextBoxContactName.Text; // Example contact name
+                    contactPhoneNumber = TextBoxPhone.Text; // Example phone number
+                    contactEmail = TextBoxContactEmail.Text; // Example email
+                    additionalInformation = TextBoxAdditionalInformation.Text; // Optional
+
+                    if (RadioButtonBothSchemes.Checked)
                     {
-                        LegalEntityDetails = new LegalEntityDetails
+                        var entity = new CreateLegalEntityModel
                         {
-                            PublishInPeppolDirectory = CheckBoxPublishMinimum.Checked,
-                            Name = name,
-                            CountryCode = countryCode,
-                            GeographicalInformation = geographicalInformation,
-                            WebsiteUrl = websiteUrl,
-                            Contacts = new List<Contact>
+                            LegalEntityDetails = new LegalEntityDetails
+                            {
+                                PublishInPeppolDirectory = CheckBoxPublishMinimum.Checked,
+                                Name = name,
+                                CountryCode = countryCode,
+                                GeographicalInformation = geographicalInformation,
+                                WebsiteUrl = websiteUrl,
+                                Contacts = new List<Contact>
                     {
                         new Contact
                         {
@@ -490,9 +496,9 @@ namespace MarSync.MarioMenu.Admin
                             Email = contactEmail
                         }
                     },
-                            AdditionalInformation = additionalInformation
-                        },
-                        PeppolRegistrations = new List<PeppolRegistration>
+                                AdditionalInformation = additionalInformation
+                            },
+                            PeppolRegistrations = new List<PeppolRegistration>
                 {
                     new PeppolRegistration
                     {
@@ -531,37 +537,37 @@ namespace MarSync.MarioMenu.Admin
                         PublishInSmp = true
                     }
                 }
-                    };
+                        };
 
-                    try
-                    {
-                        var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
-
-                        ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
-                        MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception)
-                    {
-                        ToolStripStatusLabel.Text = "Error during entity creation.";
-                    }
-
-                    ButtonEntityNew.Enabled = false; // Disable the button after creating the entity
-                    TextBoxCompanyName.Clear();
-                    TextBoxGeographicalInformation.Clear();
-                }
-                else
-                {
-                    // Build the request using your Postman example values
-                    var entity = new CreateLegalEntityModel
-                    {
-                        LegalEntityDetails = new LegalEntityDetails
+                        try
                         {
-                            PublishInPeppolDirectory = true,
-                            Name = name,
-                            CountryCode = countryCode,
-                            GeographicalInformation = geographicalInformation,
-                            WebsiteUrl = websiteUrl,
-                            Contacts = new List<Contact>
+                            var result = await AdemicoClientV1.CreateAndRegisterLegalEntityAsync(request: entity);
+
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                            MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception)
+                        {
+                            ToolStripStatusLabel.Text = "Error during entity creation.";
+                        }
+
+                        ButtonEntityNew.Enabled = false; // Disable the button after creating the entity
+                        TextBoxCompanyName.Clear();
+                        TextBoxGeographicalInformation.Clear();
+                    }
+                    else
+                    {
+                        // Build the request using your Postman example values
+                        var entity = new CreateLegalEntityModel
+                        {
+                            LegalEntityDetails = new LegalEntityDetails
+                            {
+                                PublishInPeppolDirectory = true,
+                                Name = name,
+                                CountryCode = countryCode,
+                                GeographicalInformation = geographicalInformation,
+                                WebsiteUrl = websiteUrl,
+                                Contacts = new List<Contact>
                     {
                         new Contact
                         {
@@ -571,9 +577,9 @@ namespace MarSync.MarioMenu.Admin
                             Email = contactEmail
                         }
                     },
-                            AdditionalInformation = additionalInformation
-                        },
-                        PeppolRegistrations = new List<PeppolRegistration>
+                                AdditionalInformation = additionalInformation
+                            },
+                            PeppolRegistrations = new List<PeppolRegistration>
                 {
                     new PeppolRegistration
                     {
@@ -594,35 +600,34 @@ namespace MarSync.MarioMenu.Admin
                         PublishInSmp = true
                     }
                 }
-                    };
-                    try
-                    {
-                        var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
+                        };
+                        try
+                        {
+                            var result = await AdemicoClientV1.CreateAndRegisterLegalEntityAsync(request: entity);
 
-                        ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
-                        MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                            MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception)
+                        {
+                            ToolStripStatusLabel.Text = "Error during entity creation.";
+                        }
                     }
-                    catch (Exception)
-                    {
-                        ToolStripStatusLabel.Text = "Error during entity creation.";
-                    }
-
                 }
-            }
-            else
-            {
-                var entity = new CreateLegalEntityModel
+                else
                 {
-                    LegalEntityDetails = new LegalEntityDetails
+                    var entity = new CreateLegalEntityModel
                     {
-                        PublishInPeppolDirectory = true,
-                        Name = name,
-                        CountryCode = countryCode,
-                        GeographicalInformation = "",
-                        WebsiteUrl = "",
-                        AdditionalInformation = ""
-                    },
-                    PeppolRegistrations = new List<PeppolRegistration>
+                        LegalEntityDetails = new LegalEntityDetails
+                        {
+                            PublishInPeppolDirectory = true,
+                            Name = name,
+                            CountryCode = countryCode,
+                            GeographicalInformation = "",
+                            WebsiteUrl = "",
+                            AdditionalInformation = ""
+                        },
+                        PeppolRegistrations = new List<PeppolRegistration>
                 {
                     new PeppolRegistration
                     {
@@ -643,26 +648,25 @@ namespace MarSync.MarioMenu.Admin
                         PublishInSmp = true
                     }
                 }
-                };
-                try
-                {
-                    var result = await AdemicoClientV1.CreateOrRegisterLegalEntityAsync(request: entity);
+                    };
+                    try
+                    {
+                        var result = await AdemicoClientV1.CreateAndRegisterLegalEntityAsync(request: entity);
 
-                    ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
-                    MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                        MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception)
+                    {
+                        ToolStripStatusLabel.Text = "Error during entity creation.";
+                    }
                 }
-                catch (Exception)
-                {
-                    ToolStripStatusLabel.Text = "Error during entity creation.";
-                }
-
-
             }
+
             ButtonEntityNew.Enabled = false; // Disable the button after creating the entity
             TextBoxCompanyName.Clear();
             TextBoxGeographicalInformation.Clear();
         }
-
 
         async private void ButtonGetUBLDocument_Click(object sender, EventArgs e)
         {
@@ -1251,7 +1255,7 @@ namespace MarSync.MarioMenu.Admin
             // Output the new JSON
             return result.ToString(Newtonsoft.Json.Formatting.Indented);
         }
-        
+
         private string GetLegalEntityEmail(string identifier)
         {
             // For testing purposes, return a fixed email address
@@ -1572,7 +1576,7 @@ namespace MarSync.MarioMenu.Admin
                     ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
                     return;
                 }
-            }                
+            }
 
             Cursor.Current = Cursors.WaitCursor;
             Application.DoEvents();
@@ -1989,6 +1993,6 @@ namespace MarSync.MarioMenu.Admin
             Console.WriteLine(report);
         }
 
- 
+
     }
 }

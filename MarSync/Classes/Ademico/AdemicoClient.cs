@@ -488,10 +488,6 @@ namespace MarSync
             return Uri.EscapeDataString(val ?? string.Empty);
         }
 
-
-
-
-
         public sealed class LegalEntityResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -574,7 +570,7 @@ namespace MarSync
             }
         }
 
-        public static async Task<ApiResult> CreateOrRegisterLegalEntityAsync(
+        public static async Task<ApiResult> CreateAndRegisterLegalEntityAsync(
             CreateLegalEntityModel request,
             CancellationToken cancellationToken = default)
         {
@@ -761,8 +757,20 @@ namespace MarSync
 
             [JsonPropertyName("peppolAdditionalIdentifiers")]
             public List<PeppolIdentifier> PeppolAdditionalIdentifiers { get; set; }
+
+            [JsonPropertyName("legalIdentifiers")]
+            public List<LegalIdentifier> LegalIdentifiers { get; set; }
         }
-        public class PeppolIdentifier
+         public class PeppolIdentifier
+        {
+            [JsonPropertyName("scheme")]
+            public string Scheme { get; set; }
+
+            [JsonPropertyName("identifier")]
+            public string Identifier { get; set; }
+        }
+
+        public class LegalIdentifier
         {
             [JsonPropertyName("scheme")]
             public string Scheme { get; set; }
@@ -776,6 +784,10 @@ namespace MarSync
         {
             public PeppolIdentifier PeppolIdentifier { get; set; }
             public List<string> SupportedDocuments { get; set; }
+
+            [JsonPropertyName("peppolRegistration")]
+            public bool PeppolRegistrationFlag { get; set; }
+
             public bool PublishInSmp { get; set; }
         }
 
