@@ -461,7 +461,202 @@ namespace MarSync.MarioMenu.Admin
 
             if (SharedGlobals.AdemicoApiUsedV2)
             {
+                if (!CheckBoxPublishMinimum.Checked)
+                {
+                    geographicalInformation = TextBoxGeographicalInformation.Text;
+                    websiteUrl = TextBoxWebsiteUrl.Text; // Optional
+                    contactType = "public"; // or "technical"
+                    contactName = TextBoxContactName.Text; // Example contact name
+                    contactPhoneNumber = TextBoxPhone.Text; // Example phone number
+                    contactEmail = TextBoxContactEmail.Text; // Example email
+                    additionalInformation = TextBoxAdditionalInformation.Text; // Optional
 
+                    if (RadioButtonBothSchemes.Checked)
+                    {
+                        var entity = new CreateLegalEntityModel
+                        {
+                            LegalEntityDetails = new LegalEntityDetails
+                            {
+                                PublishInPeppolDirectory = CheckBoxPublishMinimum.Checked,
+                                Name = name,
+                                CountryCode = countryCode,
+                                GeographicalInformation = geographicalInformation,
+                                WebsiteUrl = websiteUrl,
+                                Contacts = new List<Contact>
+                    {
+                        new Contact
+                        {
+                            ContactType = contactType,
+                            Name = contactName,
+                            PhoneNumber = contactPhoneNumber,
+                            Email = contactEmail
+                        }
+                    },
+                                AdditionalInformation = additionalInformation
+                            },
+                            PeppolRegistrations = new List<PeppolRegistration>
+                {
+                    new PeppolRegistration
+                    {
+                        PeppolIdentifier = new PeppolIdentifier
+                        {
+                            Scheme = "0208",
+                                Identifier = identifier0208 // "0421132626"
+                        },
+                        SupportedDocuments = new List<string>
+                        {
+                            "UBL_BE_INVOICE_3_0",
+                            "UBL_BE_CREDIT_NOTE_3_0",
+                            "PEPPOL_BIS_BILLING_UBL_INVOICE_V3",
+                            "PEPPOL_BIS_BILLING_UBL_CREDIT_NOTE_V3",
+                            "PEPPOL_MESSAGE_LEVEL_RESPONSE_TRANSACTION_3_0",
+                            "PEPPOL_INVOICE_RESPONSE_TRANSACTION_3_0"
+                        },
+                        PublishInSmp = true
+                    },
+                    new PeppolRegistration
+                    {
+                        PeppolIdentifier = new PeppolIdentifier
+                        {
+                            Scheme = "9925",
+                            Identifier = identifier9925  // "BE0421132626"
+                        },
+                        SupportedDocuments = new List<string>
+                        {
+                            "UBL_BE_INVOICE_3_0",
+                            "UBL_BE_CREDIT_NOTE_3_0",
+                            "PEPPOL_BIS_BILLING_UBL_INVOICE_V3",
+                            "PEPPOL_BIS_BILLING_UBL_CREDIT_NOTE_V3",
+                            "PEPPOL_MESSAGE_LEVEL_RESPONSE_TRANSACTION_3_0",
+                            "PEPPOL_INVOICE_RESPONSE_TRANSACTION_3_0"
+                        },
+                        PublishInSmp = true
+                    }
+                }
+                        };
+
+                        try
+                        {
+                            var result = await AdemicoClientV2.CreateAndRegisterLegalEntityAsync(request: entity);
+
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                            MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception)
+                        {
+                            ToolStripStatusLabel.Text = "Error during entity creation.";
+                        }
+
+                        ButtonEntityNew.Enabled = false; // Disable the button after creating the entity
+                        TextBoxCompanyName.Clear();
+                        TextBoxGeographicalInformation.Clear();
+                    }
+                    else
+                    {
+                        // Build the request using your Postman example values
+                        var entity = new CreateLegalEntityModel
+                        {
+                            LegalEntityDetails = new LegalEntityDetails
+                            {
+                                PublishInPeppolDirectory = true,
+                                Name = name,
+                                CountryCode = countryCode,
+                                GeographicalInformation = geographicalInformation,
+                                WebsiteUrl = websiteUrl,
+                                Contacts = new List<Contact>
+                    {
+                        new Contact
+                        {
+                            ContactType = contactType,
+                            Name = contactName,
+                            PhoneNumber = contactPhoneNumber,
+                            Email = contactEmail
+                        }
+                    },
+                                AdditionalInformation = additionalInformation
+                            },
+                            PeppolRegistrations = new List<PeppolRegistration>
+                {
+                    new PeppolRegistration
+                    {
+                        PeppolIdentifier = new PeppolIdentifier
+                        {
+                            Scheme = "0208",
+                                Identifier = identifier0208 // "0421132626"
+                        },
+                        SupportedDocuments = new List<string>
+                        {
+                            "UBL_BE_INVOICE_3_0",
+                            "UBL_BE_CREDIT_NOTE_3_0",
+                            "PEPPOL_BIS_BILLING_UBL_INVOICE_V3",
+                            "PEPPOL_BIS_BILLING_UBL_CREDIT_NOTE_V3",
+                            "PEPPOL_MESSAGE_LEVEL_RESPONSE_TRANSACTION_3_0",
+                            "PEPPOL_INVOICE_RESPONSE_TRANSACTION_3_0"
+                        },
+                        PublishInSmp = true
+                    }
+                }
+                        };
+                        try
+                        {
+                            var result = await AdemicoClientV2.CreateAndRegisterLegalEntityAsync(request: entity);
+
+                            ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                            MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        catch (Exception)
+                        {
+                            ToolStripStatusLabel.Text = "Error during entity creation.";
+                        }
+                    }
+                }
+                else
+                {
+                    var entity = new CreateLegalEntityModel
+                    {
+                        LegalEntityDetails = new LegalEntityDetails
+                        {
+                            PublishInPeppolDirectory = true,
+                            Name = name,
+                            CountryCode = countryCode,
+                            GeographicalInformation = "",
+                            WebsiteUrl = "",
+                            AdditionalInformation = ""
+                        },
+                        PeppolRegistrations = new List<PeppolRegistration>
+                {
+                    new PeppolRegistration
+                    {
+                        PeppolIdentifier = new PeppolIdentifier
+                        {
+                            Scheme = "0208",
+                                Identifier = identifier0208
+                        },
+                        SupportedDocuments = new List<string>
+                        {
+                            "UBL_BE_INVOICE_3_0",
+                            "UBL_BE_CREDIT_NOTE_3_0",
+                            "PEPPOL_BIS_BILLING_UBL_INVOICE_V3",
+                            "PEPPOL_BIS_BILLING_UBL_CREDIT_NOTE_V3",
+                            "PEPPOL_MESSAGE_LEVEL_RESPONSE_TRANSACTION_3_0",
+                            "PEPPOL_INVOICE_RESPONSE_TRANSACTION_3_0"
+                        },
+                        PublishInSmp = true
+                    }
+                }
+                    };
+                    try
+                    {
+                        var result = await AdemicoClientV2.CreateAndRegisterLegalEntityAsync(request: entity);
+
+                        ToolStripStatusLabel.Text = $"Status: {(int)result.StatusCode} {result.StatusCode}";
+                        MessageBox.Show($"Response: {result.ResponseBody}", "Result", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception)
+                    {
+                        ToolStripStatusLabel.Text = "Error during entity creation.";
+                    }
+                }
             }
             else
             {

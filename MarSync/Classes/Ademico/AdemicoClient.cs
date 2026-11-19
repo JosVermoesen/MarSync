@@ -473,6 +473,7 @@ namespace MarSync
                 }
             }
         }
+
         public sealed class ApiResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -487,7 +488,6 @@ namespace MarSync
         {
             return Uri.EscapeDataString(val ?? string.Empty);
         }
-
         public sealed class LegalEntityResult
         {
             public HttpStatusCode StatusCode { get; }
@@ -1260,6 +1260,60 @@ namespace MarSync
             }
         }
 
+        public static async Task<ApiResult> CreateAndRegisterLegalEntityAsync(
+            CreateLegalEntityModel request,
+            CancellationToken cancellationToken = default)
+        {
+            var baseUrl = ademicoUrl.TrimEnd('/');
+            var requestUri = baseUrl + "/api/peppol/v2/legal-entities";
+
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                WriteIndented = false
+            };
+
+            using (var http = new HttpClient())
+            {
+                var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
+                http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+
+                http.DefaultRequestHeaders.Accept.Clear();
+                http.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+                // Add accessToken header (V2 requirement)
+                if (!string.IsNullOrEmpty(accessToken))
+                {
+                    http.DefaultRequestHeaders.Add("accessToken", accessToken);
+                }
+
+                var json = JsonSerializer.Serialize(request, jsonSerializerOptions);
+                using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
+                {
+                    try
+                    {
+                        using (var response = await http.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
+                        {
+                            string body = response.Content == null
+                                ? null
+                                : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                            return new ApiResult(response.StatusCode, body);
+                        }
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        return new ApiResult(0, "HttpRequestException in CreateAndRegisterLegalEntityAsync: " + ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        return new ApiResult(0, "Exception in CreateAndRegisterLegalEntityAsync: " + ex.Message);
+                    }
+                }
+            }
+        }
+
         public static class PeppolInvoiceSender
         {
             public class ApiResult
@@ -1706,6 +1760,13 @@ namespace MarSync
             public int PageSize { get; set; }
         }
 
+        // Response model for CreateAndRegisterLegalEntityAsync
+        public class CreateLegalEntityResponseV2
+        {
+            [JsonPropertyName("legalEntityId")]
+            public int LegalEntityId { get; set; }
+        }
+
         // Peppol Registration Response Models for V2 API
         public class PeppolIdentifier
         {
@@ -1714,6 +1775,85 @@ namespace MarSync
 
             [JsonPropertyName("identifier")]
             public string Identifier { get; set; }
+        }
+
+        public class Contact
+        {
+            [JsonPropertyName("contactType")]
+            public string ContactType { get; set; }
+
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("phoneNumber")]
+            public string PhoneNumber { get; set; }
+
+            [JsonPropertyName("email")]
+            public string Email { get; set; }
+        }
+
+        public class LegalIdentifier
+        {
+            [JsonPropertyName("scheme")]
+            public string Scheme { get; set; }
+
+            [JsonPropertyName("identifier")]
+            public string Identifier { get; set; }
+        }
+
+        // Request model for CreateAndRegisterLegalEntityAsync - detailed version
+        public class LegalEntityDetailsV2
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("countryCode")]
+            public string CountryCode { get; set; }
+
+            [JsonPropertyName("publishInPeppolDirectory")]
+            public bool PublishInPeppolDirectory { get; set; }
+
+            [JsonPropertyName("geographicalInformation")]
+            public string GeographicalInformation { get; set; }
+
+            [JsonPropertyName("registrationDate")]
+            public DateTime? RegistrationDate { get; set; }
+
+            [JsonPropertyName("websiteURL")]
+            public string WebsiteURL { get; set; }
+
+            [JsonPropertyName("contacts")]
+            public List<Contact> Contacts { get; set; }
+
+            [JsonPropertyName("additionalInformation")]
+            public string AdditionalInformation { get; set; }
+
+            [JsonPropertyName("peppolAdditionalIdentifiers")]
+            public List<PeppolIdentifier> PeppolAdditionalIdentifiers { get; set; }
+
+            [JsonPropertyName("legalIdentifiers")]
+            public List<LegalIdentifier> LegalIdentifiers { get; set; }
+        }
+
+        public class PeppolRegistrationV2
+        {
+            [JsonPropertyName("peppolIdentifier")]
+            public PeppolIdentifier PeppolIdentifier { get; set; }
+
+            [JsonPropertyName("supportedDocuments")]
+            public List<string> SupportedDocuments { get; set; }
+
+            [JsonPropertyName("peppolRegistration")]
+            public bool PeppolRegistration { get; set; }
+        }
+
+        public class CreateLegalEntityModelV2
+        {
+            [JsonPropertyName("legalEntityDetails")]
+            public LegalEntityDetailsV2 LegalEntityDetails { get; set; }
+
+            [JsonPropertyName("peppolRegistrations")]
+            public List<PeppolRegistrationV2> PeppolRegistrations { get; set; }
         }
 
         public class LegalEntityDetails
