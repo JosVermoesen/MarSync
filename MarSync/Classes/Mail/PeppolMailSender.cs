@@ -80,15 +80,15 @@ namespace Vsoft.Mail
             string smtpUser,
             string smtpPassword,
             string fromEmail,
-            string fromName,            
+            string fromName,
             string clientEmail,
-            string reportHtml,            
+            string reportHtml,
             Action<string> log = null)
         {
             try
             {
                 log?.Invoke("Start sending report mail...");
-                                
+
                 try
                 {
                     var message = new MimeMessage();
@@ -176,7 +176,7 @@ namespace Vsoft.Mail
                         SharedGlobals.MarntCLoudArchiveLocation + "\\" + SharedGlobals.ActiveCompany
                         + "\\peppol\\archive\\"
                         + selectedYear
-                        + "\\" + selectedWeek.Substring(0,6)  + "\\";
+                        + "\\" + selectedWeek.Substring(0, 6) + "\\";
 
                     try
                     {
@@ -255,7 +255,7 @@ namespace Vsoft.Mail
                 {
                     log?.Invoke("MailKit ERROR: " + ex.Message);
                     return "ERROR sending mail: " + ex.Message;
-                }               
+                }
             }
             catch (Exception ex)
             {
@@ -274,10 +274,10 @@ namespace Vsoft.Mail
             string smtpUser,
             string smtpPassword,
             string fromEmail,
-            string fromName,            
+            string fromName,
             string vsoftAdminEmail,
             string vsoftAdminName,
-            string selectedPeppolFile,  
+            string selectedPeppolFile,
             string responseBody,
             string apiModus,
             Action<string> log = null)

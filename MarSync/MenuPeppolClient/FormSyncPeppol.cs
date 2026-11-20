@@ -740,7 +740,7 @@ namespace MarSync.MarioMenu.Actions
 
                 if (result.IsSuccess)
                 {
-                    MessageBox.Show($"Success: {result.ResponseBody}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);                    
+                    MessageBox.Show($"Success: {result.ResponseBody}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -1406,7 +1406,7 @@ namespace MarSync.MarioMenu.Actions
         private async void Timer_Tick(object sender, EventArgs e)
         {
             ToolStripStatusLabel.Text = "Lijsten worden vernieuwd...";
-            await RefreshMonitor(true); // Call with 'true' to perform full refresh with actions
+            // await RefreshMonitor(true); // Call with 'true' to perform full refresh with actions
         }
 
         private void CountdownTimer_Tick(object sender, EventArgs e)
@@ -3929,7 +3929,7 @@ namespace MarSync.MarioMenu.Actions
                         // Save to file
                         string myDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                         string exactFileName = DateAndTime.Now.ToString("yyyyMMdd_HHmmss") + "_peppol.xml";
-                        string outputFile = Path.Combine(myDocumentsFolderPath,exactFileName);
+                        string outputFile = Path.Combine(myDocumentsFolderPath, exactFileName);
 
                         // Save to file in My Documents
                         using (var writer = new StreamWriter(outputFile, false, Encoding.UTF8))
@@ -3946,7 +3946,7 @@ namespace MarSync.MarioMenu.Actions
                         if (!string.IsNullOrWhiteSpace(result.ConversionOutcome))
                         {
                             message += $"\n\nConversie resultaat: {result.ConversionOutcome}";
-                        }                        
+                        }
 
                         var answer = MessageBox.Show(
                             message + "\n\nMap Documenten openen?", "Document opgehaald met succes",
@@ -3954,8 +3954,8 @@ namespace MarSync.MarioMenu.Actions
                                 MessageBoxIcon.Question,
                                 MessageBoxDefaultButton.Button2);
 
-                            if (answer == DialogResult.Yes)
-                                OpenFolder(myDocumentsFolderPath);
+                        if (answer == DialogResult.Yes)
+                            OpenFolder(myDocumentsFolderPath);
                     }
                     else
                     {

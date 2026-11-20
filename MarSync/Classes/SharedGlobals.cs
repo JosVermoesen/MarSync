@@ -4,7 +4,7 @@
     {
         static SharedGlobals()
         {
-            DbJetProvider = "PROVIDER=Microsoft.Jet.OLEDB.4.0;Data Source=";            
+            DbJetProvider = "PROVIDER=Microsoft.Jet.OLEDB.4.0;Data Source=";
             UserTestGuid = "";
             UserProdGuid = "";
 

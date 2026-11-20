@@ -761,7 +761,7 @@ namespace MarSync
             [JsonPropertyName("legalIdentifiers")]
             public List<LegalIdentifier> LegalIdentifiers { get; set; }
         }
-         public class PeppolIdentifier
+        public class PeppolIdentifier
         {
             [JsonPropertyName("scheme")]
             public string Scheme { get; set; }
@@ -1592,8 +1592,6 @@ namespace MarSync
                 }
             }
         }
-
-
         public static async Task<ApiResult> SendInvoiceResponseAsync(
             string invoiceTransmissionId,
             string responseCode,
@@ -1725,7 +1723,6 @@ namespace MarSync
             [JsonPropertyName("details")]
             public object[] Details { get; set; }
         }
-
 
         public class ApiResult
         {

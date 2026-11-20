@@ -121,7 +121,7 @@ namespace MarSync
     }
 
     public static class XmlComparer
-    {        
+    {
         public static bool AreXmlStringsEqual(string xmlA, string xmlB)
         {
             if (xmlA == null || xmlB == null)
@@ -132,7 +132,7 @@ namespace MarSync
                 // Parse both strings into XDocument
                 var docA = XDocument.Parse(xmlA, LoadOptions.PreserveWhitespace);
                 var docB = XDocument.Parse(xmlB, LoadOptions.PreserveWhitespace);
-                                
+
                 // Normalize formatting
                 string normA = NormalizeXml(docA);
                 string normB = NormalizeXml(docB);
@@ -163,7 +163,7 @@ namespace MarSync
             return sb.ToString();
         }
     }
-    
+
     public class MarHelpers
     {
 
@@ -236,7 +236,7 @@ namespace MarSync
             bool justPayRef,
             bool companyIdDocumentIdAndPayRef,
             bool quickInfo)
-        {            
+        {
             var xmlDoc = new XmlDocument();
             try
             {
@@ -304,11 +304,11 @@ namespace MarSync
 
             // Supplier info
             var supplierNode = xmlDoc.SelectSingleNode("//cac:AccountingSupplierParty/cac:Party", ns);
-            string companyId = "";            
+            string companyId = "";
             string partyName = "";
             string streetName = "";
             string placeName = "";
-                        
+
             string customerId = "";
             string customerPartyName = "";
             string customerStreetName = "";
@@ -320,7 +320,7 @@ namespace MarSync
                 msg.AppendLine("Supplier info");
                 msg.AppendLine("-------------");
 
-                string valueToUse = NodeText(supplierNode, "cbc:EndpointID", ns);                
+                string valueToUse = NodeText(supplierNode, "cbc:EndpointID", ns);
 
                 if (valueToUse.Length == 12 && valueToUse.Contains("BE"))
                 {
@@ -355,7 +355,7 @@ namespace MarSync
                 streetName = NodeText(supplierNode, "cac:PostalAddress/cbc:StreetName", ns);
                 placeName = NodeText(supplierNode, "cac:PostalAddress/cbc:CityName", ns);
 
-                msg.AppendLine("endpointOndernemingsnummer " + companyId);                
+                msg.AppendLine("endpointOndernemingsnummer " + companyId);
                 msg.AppendLine("supplierID: " + supplierId);
                 msg.AppendLine("tradingName: " + partyName);
                 msg.AppendLine("street: " + streetName);
@@ -532,7 +532,7 @@ namespace MarSync
                 " - Document ID: " + documentId + "\n" +
                 " - Document Datum: " + issueDateNode.InnerText + "\n" +
                 " - InvoiceTypeCode: " + invTypeNode.InnerText + "\n\n" +
-                " - Info Leverancier:\n " + 
+                " - Info Leverancier:\n " +
                 "   - " + companyId + " - " + partyName + "\n" +
                 "   - " + streetName + ", " + placeName + "\n\n" +
                 " - Info Klant:\n" +
@@ -716,7 +716,7 @@ namespace MarSync
                 SharedGlobals.AdemicoPassword = MyApiSecrets.testPassword;
                 SharedGlobals.ApiModus = "TESTMODE";
                 SharedGlobals.AdemicoApiUsedV2 = true; // Set to true for TESTMODE
-            }            
+            }
             else if (apiMode == "PRODUCTIE")
             {
                 SharedGlobals.AdemicoApiUrlV1 = MyApiSecrets.prodBaseUrlV1;
@@ -752,7 +752,7 @@ namespace MarSync
 
         public static void SetCompanyGlobals(string selectedCompany)
         {
-            SharedGlobals.ActiveCompany = selectedCompany;            
+            SharedGlobals.ActiveCompany = selectedCompany;
 
             // Use the provided method to set the value instead of direct assignment
             SharedGlobals.SetMarntMdvLocation("\\" + selectedCompany + "\\marnt.mdv");
@@ -979,7 +979,7 @@ namespace MarSync
         }
 
         public static string MovePeppolFileToCloudDrive(string sourceFolderPathAndFile, string cloudFolderPath)
-        {            
+        {
             if (!Directory.Exists(cloudFolderPath))
                 // then create it
                 Directory.CreateDirectory(cloudFolderPath);
