@@ -1835,6 +1835,13 @@ namespace MarSync.MarioMenu.Actions
             // Show documents that were successfully sent to Peppol (have transmissionId)
             LabelTotalInMapOutSentConfirmed.Text = totalInMapOutSent.ToString();
             await RefreshListPeppolSent();
+            if (LabelTotalInMapOut.Text == "0")
+            {
+                // Do something if the total is 0
+                LabelTotalInMapOutSent.Text = "0";
+                LabelTotalInMapOutSentConfirmed.Text = "0";
+
+            }
         }
 
         async private Task RefreshCyclePeppolReceive()
@@ -2290,7 +2297,11 @@ namespace MarSync.MarioMenu.Actions
         }
         async private Task RefreshListPeppolSent()
         {
+            LabelTotalInMapOut.Text = "0";
+            
             totalInMapOut = 0;
+            totalInMapOutSent = 0;
+
             string folderOutPath = SharedGlobals.MimDataLocation + "\\" + SharedGlobals.ActiveCompany + "\\peppol\\out";
 
             try

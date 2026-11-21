@@ -33,6 +33,7 @@
             this.TabMonitor = new System.Windows.Forms.TabPage();
             this.ButtonGetDocument = new System.Windows.Forms.Button();
             this.TextBoxTransmissionId = new System.Windows.Forms.TextBox();
+            this.ButtonClose = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.ButtonMyStatusReport = new System.Windows.Forms.Button();
             this.ComboBoxBuyerOrSeller = new System.Windows.Forms.ComboBox();
@@ -106,7 +107,6 @@
             this.ButtonGetUBLDocument = new System.Windows.Forms.Button();
             this.TextBoxDocumentTransmissionId = new System.Windows.Forms.TextBox();
             this.LabelTransmissionId = new System.Windows.Forms.Label();
-            this.ButtonClose = new System.Windows.Forms.Button();
             this.StatusStrip = new System.Windows.Forms.StatusStrip();
             this.ToolStripStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.TabControlVariousActions.SuspendLayout();
@@ -190,6 +190,17 @@
             this.TextBoxTransmissionId.Name = "TextBoxTransmissionId";
             this.TextBoxTransmissionId.Size = new System.Drawing.Size(365, 26);
             this.TextBoxTransmissionId.TabIndex = 63;
+            // 
+            // ButtonClose
+            // 
+            this.ButtonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.ButtonClose.Location = new System.Drawing.Point(242, 151);
+            this.ButtonClose.Name = "ButtonClose";
+            this.ButtonClose.Size = new System.Drawing.Size(139, 31);
+            this.ButtonClose.TabIndex = 41;
+            this.ButtonClose.Text = "Sluiten";
+            this.ButtonClose.UseVisualStyleBackColor = true;
+            this.ButtonClose.Click += new System.EventHandler(this.ButtonClose_Click);
             // 
             // label1
             // 
@@ -400,7 +411,7 @@
             // 
             this.LabelTotalInMapOutSent.BackColor = System.Drawing.Color.LemonChiffon;
             this.LabelTotalInMapOutSent.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
-            this.LabelTotalInMapOutSent.Location = new System.Drawing.Point(79, 191);
+            this.LabelTotalInMapOutSent.Location = new System.Drawing.Point(79, 189);
             this.LabelTotalInMapOutSent.Name = "LabelTotalInMapOutSent";
             this.LabelTotalInMapOutSent.Size = new System.Drawing.Size(74, 23);
             this.LabelTotalInMapOutSent.TabIndex = 21;
@@ -666,7 +677,7 @@
             this.TabSendDocument.Controls.Add(this.ButtonCheckFileOut);
             this.TabSendDocument.Location = new System.Drawing.Point(4, 22);
             this.TabSendDocument.Name = "TabSendDocument";
-            this.TabSendDocument.Size = new System.Drawing.Size(393, 491);
+            this.TabSendDocument.Size = new System.Drawing.Size(400, 495);
             this.TabSendDocument.TabIndex = 2;
             this.TabSendDocument.Text = "Verzonden";
             this.TabSendDocument.UseVisualStyleBackColor = true;
@@ -706,9 +717,9 @@
             // 
             this.ListBoxDocumentsOut.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.ListBoxDocumentsOut.FormattingEnabled = true;
-            this.ListBoxDocumentsOut.Location = new System.Drawing.Point(0, 123);
+            this.ListBoxDocumentsOut.Location = new System.Drawing.Point(0, 127);
             this.ListBoxDocumentsOut.Name = "ListBoxDocumentsOut";
-            this.ListBoxDocumentsOut.Size = new System.Drawing.Size(393, 368);
+            this.ListBoxDocumentsOut.Size = new System.Drawing.Size(400, 368);
             this.ListBoxDocumentsOut.TabIndex = 6;
             this.ListBoxDocumentsOut.SelectedIndexChanged += new System.EventHandler(this.ListBoxDocumentsOut_SelectedIndexChanged);
             // 
@@ -752,7 +763,7 @@
             this.TabNotifications.Location = new System.Drawing.Point(4, 22);
             this.TabNotifications.Name = "TabNotifications";
             this.TabNotifications.Padding = new System.Windows.Forms.Padding(3);
-            this.TabNotifications.Size = new System.Drawing.Size(393, 491);
+            this.TabNotifications.Size = new System.Drawing.Size(400, 495);
             this.TabNotifications.TabIndex = 1;
             this.TabNotifications.Text = "Meldingen";
             this.TabNotifications.UseVisualStyleBackColor = true;
@@ -873,10 +884,10 @@
             this.DataGridViewNotifications.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.ColumnHeader;
             this.DataGridViewNotifications.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DataGridViewNotifications.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.DataGridViewNotifications.Location = new System.Drawing.Point(3, 279);
+            this.DataGridViewNotifications.Location = new System.Drawing.Point(3, 283);
             this.DataGridViewNotifications.Name = "DataGridViewNotifications";
             this.DataGridViewNotifications.ReadOnly = true;
-            this.DataGridViewNotifications.Size = new System.Drawing.Size(387, 209);
+            this.DataGridViewNotifications.Size = new System.Drawing.Size(394, 209);
             this.DataGridViewNotifications.TabIndex = 12;
             this.DataGridViewNotifications.Visible = false;
             // 
@@ -913,7 +924,7 @@
             this.TabResponse.Controls.Add(this.RichTextBoxResponses);
             this.TabResponse.Location = new System.Drawing.Point(4, 22);
             this.TabResponse.Name = "TabResponse";
-            this.TabResponse.Size = new System.Drawing.Size(393, 491);
+            this.TabResponse.Size = new System.Drawing.Size(400, 495);
             this.TabResponse.TabIndex = 4;
             this.TabResponse.Text = "Reacties/Antwoorden";
             this.TabResponse.UseVisualStyleBackColor = true;
@@ -923,7 +934,7 @@
             this.RichTextBoxResponses.Dock = System.Windows.Forms.DockStyle.Fill;
             this.RichTextBoxResponses.Location = new System.Drawing.Point(0, 0);
             this.RichTextBoxResponses.Name = "RichTextBoxResponses";
-            this.RichTextBoxResponses.Size = new System.Drawing.Size(393, 491);
+            this.RichTextBoxResponses.Size = new System.Drawing.Size(400, 495);
             this.RichTextBoxResponses.TabIndex = 1;
             this.RichTextBoxResponses.Text = "";
             // 
@@ -934,7 +945,7 @@
             this.TabConsultArchive.Controls.Add(this.LabelTransmissionId);
             this.TabConsultArchive.Location = new System.Drawing.Point(4, 22);
             this.TabConsultArchive.Name = "TabConsultArchive";
-            this.TabConsultArchive.Size = new System.Drawing.Size(393, 491);
+            this.TabConsultArchive.Size = new System.Drawing.Size(400, 495);
             this.TabConsultArchive.TabIndex = 6;
             this.TabConsultArchive.Text = "Archief Consulteren";
             this.TabConsultArchive.UseVisualStyleBackColor = true;
@@ -968,17 +979,6 @@
             this.LabelTransmissionId.Size = new System.Drawing.Size(163, 13);
             this.LabelTransmissionId.TabIndex = 6;
             this.LabelTransmissionId.Text = "Transmissie Id van het document";
-            // 
-            // ButtonClose
-            // 
-            this.ButtonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.ButtonClose.Location = new System.Drawing.Point(242, 151);
-            this.ButtonClose.Name = "ButtonClose";
-            this.ButtonClose.Size = new System.Drawing.Size(139, 31);
-            this.ButtonClose.TabIndex = 41;
-            this.ButtonClose.Text = "Sluiten";
-            this.ButtonClose.UseVisualStyleBackColor = true;
-            this.ButtonClose.Click += new System.EventHandler(this.ButtonClose_Click);
             // 
             // StatusStrip
             // 
