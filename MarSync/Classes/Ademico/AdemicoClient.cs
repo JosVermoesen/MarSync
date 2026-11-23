@@ -902,6 +902,7 @@ namespace MarSync
     {
         static readonly string ademicoUrl = SharedGlobals.AdemicoApiUrlV2;
         static readonly string accessToken = SharedGlobals.AdemicoAccessToken;
+        static readonly string environmentTokenHeaderName = "X-ADEMICO-ENVIRONMENT-TOKEN";
         static readonly string username = SharedGlobals.AdemicoUsername;
         static readonly string password = SharedGlobals.AdemicoPassword;
 
@@ -913,10 +914,10 @@ namespace MarSync
             var authToken = Convert.ToBase64String(Encoding.ASCII.GetBytes(username + ":" + password));
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", authToken);
 
-            // Add accessToken as header (as per Postman definition)
+            // Add accessToken as header (v2 requirement)
             if (!string.IsNullOrEmpty(accessToken))
             {
-                client.DefaultRequestHeaders.Add("accessToken", accessToken);
+                client.DefaultRequestHeaders.Add(environmentTokenHeaderName, accessToken);
             }
 
             // Add Accept header
@@ -1002,7 +1003,7 @@ namespace MarSync
                     // Add accessToken header (v2 requirement - header only, not query parameter)
                     if (!string.IsNullOrEmpty(accessToken))
                     {
-                        request.Headers.Add("accessToken", accessToken);
+                        request.Headers.Add(environmentTokenHeaderName, accessToken);
                     }
 
                     try
@@ -1112,7 +1113,7 @@ namespace MarSync
                 // Add accessToken header (v2 requirement - header only, not query parameter)
                 if (!string.IsNullOrEmpty(accessToken))
                 {
-                    request.Headers.Add("accessToken", accessToken);
+                    request.Headers.Add(environmentTokenHeaderName, accessToken);
                 }
 
                 try
@@ -1213,7 +1214,7 @@ namespace MarSync
                 // Add accessToken header (V2 requirement - header only, not query parameter)
                 if (!string.IsNullOrEmpty(accessToken))
                 {
-                    request.Headers.Add("accessToken", accessToken);
+                    request.Headers.Add(environmentTokenHeaderName, accessToken);
                 }
 
                 try
@@ -1285,7 +1286,7 @@ namespace MarSync
                 // Add accessToken header (V2 requirement)
                 if (!string.IsNullOrEmpty(accessToken))
                 {
-                    http.DefaultRequestHeaders.Add("accessToken", accessToken);
+                    http.DefaultRequestHeaders.Add(environmentTokenHeaderName, accessToken);
                 }
 
                 var json = JsonSerializer.Serialize(request, jsonSerializerOptions);
@@ -1392,7 +1393,7 @@ namespace MarSync
                     // Add accessToken header (v2 requirement - header only, not query parameter)
                     if (!string.IsNullOrEmpty(accessToken))
                     {
-                        httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                        httpClient.DefaultRequestHeaders.Add(environmentTokenHeaderName, accessToken);
                     }
 
                     // Add X-C5-REPORTING header
@@ -1528,7 +1529,7 @@ namespace MarSync
                     // Add accessToken header (v2 requirement - header only, not query parameter)
                     if (!string.IsNullOrEmpty(accessToken))
                     {
-                        httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                        httpClient.DefaultRequestHeaders.Add(environmentTokenHeaderName, accessToken);
                     }
 
                     try
@@ -1633,7 +1634,7 @@ namespace MarSync
                 // Add accessToken header (v2 requirement - header only, not query parameter)
                 if (!string.IsNullOrEmpty(accessToken))
                 {
-                    httpClient.DefaultRequestHeaders.Add("accessToken", accessToken);
+                    httpClient.DefaultRequestHeaders.Add(environmentTokenHeaderName, accessToken);
                 }
 
                 using (var content = new StringContent(json, Encoding.UTF8, "application/json"))
