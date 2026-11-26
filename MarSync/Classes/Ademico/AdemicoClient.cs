@@ -110,7 +110,7 @@ namespace MarSync
                             // Success path
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
                                 return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                             }
 
@@ -118,16 +118,16 @@ namespace MarSync
                             if (response.StatusCode == (HttpStatusCode)429)
                             {
                                 double retryAfterSeconds = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 5;
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
 
                                 if (attempt >= maxRetries)
                                 {
                                     string errorMsg = $"API rate limit exceeded after {maxRetries} attempts. Server requested {retryAfterSeconds}s backoff.";
-                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: FAILED - {errorMsg}");
                                     return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 429, \"retryAfterSeconds\": " + retryAfterSeconds + "}";
                                 }
 
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
                                 await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds), cancellationToken);
                                 continue;
                             }
@@ -136,25 +136,25 @@ namespace MarSync
                             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
                             {
                                 string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
                                 Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
 
                                 if (attempt >= maxRetries)
                                 {
                                     string errorMsg = "Ademico API service temporarily unavailable (HTTP 503). Please try again later.";
-                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: FAILED - {errorMsg}");
                                     return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 503}";
                                 }
 
                                 int delaySeconds = Math.Min(5 * attempt, 30);
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {delaySeconds}s delay...");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Retrying after {delaySeconds}s delay...");
                                 await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
                                 continue;
                             }
 
                             // Other non-success status
                             string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {responseBody}");
 
                             string errorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
@@ -167,7 +167,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -176,12 +176,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return "{\"error\": \"Request cancelled: " + ex.Message + "\"}";
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return "{\"error\": \"Verzoek geannuleerd: " + ex.Message + "\"}";
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -333,7 +333,7 @@ namespace MarSync
 
                     try
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET invoice {transmissionId}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: GET invoice {transmissionId}");
 
                         using (var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false))
                         {
@@ -341,15 +341,15 @@ namespace MarSync
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode}");
 
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice retrieved");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS - Invoice retrieved");
                             }
                             else if (!string.IsNullOrWhiteSpace(body))
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Error response: {body}");
                             }
 
                             return new ApiResult(response.StatusCode, body);
@@ -357,7 +357,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -366,12 +366,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return new ApiResult(0, "Request cancelled in GetUblInvoiceAsync: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Verzoek geannuleerd in GetUblInvoiceAsync: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -425,7 +425,7 @@ namespace MarSync
                 {
                     try
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
 
                         using (var response = await httpClient.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
                         {
@@ -433,15 +433,15 @@ namespace MarSync
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode}");
 
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice Response scheduled for delivery");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS - Invoice Response scheduled for delivery");
                             }
                             else if (!string.IsNullOrWhiteSpace(body))
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Error response: {body}");
                             }
 
                             return new ApiResult(response.StatusCode, body);
@@ -449,7 +449,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -458,12 +458,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return new ApiResult(0, "Request cancelled in SendInvoiceResponseAsyncV1: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Verzoek geannuleerd in SendInvoiceResponseAsyncV1: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1013,7 +1013,7 @@ namespace MarSync
                             // Success path
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS (HTTP {(int)response.StatusCode})");
                                 return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                             }
 
@@ -1021,16 +1021,16 @@ namespace MarSync
                             if (response.StatusCode == (HttpStatusCode)429)
                             {
                                 double retryAfterSeconds = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? 5;
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: RATE LIMITED (429) - Attempt {attempt}/{maxRetries} - RetryAfter: {retryAfterSeconds}s");
 
                                 if (attempt >= maxRetries)
                                 {
                                     string errorMsg = $"API rate limit exceeded after {maxRetries} attempts. Server requested {retryAfterSeconds}s backoff.";
-                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: FAILED - {errorMsg}");
                                     return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 429, \"retryAfterSeconds\": " + retryAfterSeconds + "}";
                                 }
 
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Retrying after {retryAfterSeconds}s delay...");
                                 await Task.Delay(TimeSpan.FromSeconds(retryAfterSeconds), cancellationToken);
                                 continue;
                             }
@@ -1039,25 +1039,25 @@ namespace MarSync
                             if (response.StatusCode == HttpStatusCode.ServiceUnavailable)
                             {
                                 string body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SERVICE UNAVAILABLE (503) - Attempt {attempt}/{maxRetries}");
                                 Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
 
                                 if (attempt >= maxRetries)
                                 {
                                     string errorMsg = "Ademico API service temporarily unavailable (HTTP 503). Please try again later.";
-                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: FAILED - {errorMsg}");
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: FAILED - {errorMsg}");
                                     return "{\"error\": \"" + errorMsg + "\", \"statusCode\": 503}";
                                 }
 
                                 int delaySeconds = Math.Min(5 * attempt, 30);
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Retrying after {delaySeconds}s delay...");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Retrying after {delaySeconds}s delay...");
                                 await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
                                 continue;
                             }
 
                             // Other non-success status
                             string responseBody = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode} ({response.ReasonPhrase})");
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {responseBody}");
 
                             string errorMessage = $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}";
@@ -1070,7 +1070,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1079,12 +1079,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return "{\"error\": \"Request cancelled: " + ex.Message + "\"}";
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return "{\"error\": \"Verzoek geannuleerd: " + ex.Message + "\"}";
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1124,7 +1124,7 @@ namespace MarSync
                             ? null
                             : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: DELETE notification {notificationId} - HTTP {(int)response.StatusCode}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: DELETE notification {notificationId} - HTTP {(int)response.StatusCode}");
 
                         if (!string.IsNullOrWhiteSpace(body))
                         {
@@ -1135,7 +1135,7 @@ namespace MarSync
                 }
                 catch (HttpRequestException ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                     if (ex.InnerException != null)
                     {
                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1144,12 +1144,12 @@ namespace MarSync
                 }
                 catch (OperationCanceledException ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                    return new ApiResult(0, "Request cancelled in DeleteNotificationAsync: " + ex.Message);
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                    return new ApiResult(0, "Verzoek geannuleerd in DeleteNotificationAsync: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                     if (ex.InnerException != null)
                     {
                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1225,7 +1225,7 @@ namespace MarSync
                             ? null
                             : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET legal-entities - HTTP {(int)response.StatusCode}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: GET legal-entities - HTTP {(int)response.StatusCode}");
 
                         if (!string.IsNullOrWhiteSpace(body) && response.StatusCode != System.Net.HttpStatusCode.OK)
                         {
@@ -1237,7 +1237,7 @@ namespace MarSync
                 }
                 catch (HttpRequestException ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                     if (ex.InnerException != null)
                     {
                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1246,12 +1246,12 @@ namespace MarSync
                 }
                 catch (OperationCanceledException ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                    return new ApiResult(0, "Request cancelled in GetPeppolRegistrationAsync: " + ex.Message);
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                    return new ApiResult(0, "Verzoek geannuleerd in GetPeppolRegistrationAsync: " + ex.Message);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                     if (ex.InnerException != null)
                     {
                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1405,7 +1405,7 @@ namespace MarSync
 
                     try
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending UBL invoice {Path.GetFileName(filePath)} - C5 Reporting: {xC5Reporting}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek             #{requestCounter}: Sending UBL invoice {Path.GetFileName(filePath)} - C5 Reporting: {xC5Reporting}");
 
                         using (var response = await httpClient.PostAsync(requestUri, form, cancellationToken).ConfigureAwait(false))
                         {
@@ -1413,7 +1413,7 @@ namespace MarSync
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode}");
 
                             var result = new ApiResult(response.StatusCode, body);
 
@@ -1427,18 +1427,18 @@ namespace MarSync
 
                                     if (result.SubmissionResponse != null)
                                     {
-                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - TransmissionId: {result.SubmissionResponse.TransmissionId}");
+                                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS - TransmissionId: {result.SubmissionResponse.TransmissionId}");
                                         Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Sender: {result.SubmissionResponse.Sender} -> Receiver: {result.SubmissionResponse.Receiver}");
                                     }
                                 }
                                 catch (Exception parseEx)
                                 {
-                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Warning - Could not parse response: {parseEx.Message}");
+                                    Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Warning - Could not parse response: {parseEx.Message}");
                                 }
                             }
                             else if (!string.IsNullOrWhiteSpace(body))
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Error response: {body}");
                             }
 
                             return result;
@@ -1446,7 +1446,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1455,12 +1455,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return new ApiResult(0, "Request cancelled in SendUblInvoiceAsync: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Verzoek geannuleerd in SendUblInvoiceAsync: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1534,7 +1534,7 @@ namespace MarSync
 
                     try
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: GET invoice {transmissionId} (lossPolicy: {lossPolicy})");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: GET invoice {transmissionId} (lossPolicy: {lossPolicy})");
 
                         using (var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false))
                         {
@@ -1542,7 +1542,7 @@ namespace MarSync
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode}");
 
                             // Get conversion outcome header if present
                             string conversionOutcome = null;
@@ -1554,14 +1554,14 @@ namespace MarSync
 
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice retrieved");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS - Invoice retrieved");
                                 return new ApiResult(response.StatusCode, body, conversionOutcome);
                             }
 
                             // Error response (typically JSON)
                             if (!string.IsNullOrWhiteSpace(body))
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Error response: {body}");
                             }
 
                             return new ApiResult(response.StatusCode, body, conversionOutcome);
@@ -1569,7 +1569,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1578,12 +1578,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return new ApiResult(0, "Request cancelled in GetUblInvoiceAsync: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Verzoek geannuleerd in GetUblInvoiceAsync: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1641,7 +1641,7 @@ namespace MarSync
                 {
                     try
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Sending Invoice Response for transmissionId {invoiceTransmissionId} (responseCode: {responseCode})");
 
                         using (var response = await httpClient.PostAsync(requestUri, content, cancellationToken).ConfigureAwait(false))
                         {
@@ -1649,11 +1649,11 @@ namespace MarSync
                                 ? null
                                 : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
-                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HTTP {(int)response.StatusCode}");
+                            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HTTP {(int)response.StatusCode}");
 
                             if (response.IsSuccessStatusCode)
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: SUCCESS - Invoice Response accepted for delivery");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: SUCCESS - Invoice Response accepted for delivery");
                                 if (!string.IsNullOrWhiteSpace(body))
                                 {
                                     Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Response body: {body}");
@@ -1661,7 +1661,7 @@ namespace MarSync
                             }
                             else if (!string.IsNullOrWhiteSpace(body))
                             {
-                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Error response: {body}");
+                                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Error response: {body}");
                             }
 
                             return new ApiResult(response.StatusCode, body);
@@ -1669,7 +1669,7 @@ namespace MarSync
                     }
                     catch (HttpRequestException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: HttpRequestException - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: HttpRequestException - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");
@@ -1678,12 +1678,12 @@ namespace MarSync
                     }
                     catch (OperationCanceledException ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: Operation cancelled - {ex.Message}");
-                        return new ApiResult(0, "Request cancelled in SendInvoiceResponseAsyncV2: " + ex.Message);
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: Operation cancelled - {ex.Message}");
+                        return new ApiResult(0, "Verzoek geannuleerd in SendInvoiceResponseAsyncV2: " + ex.Message);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Request #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Verzoek #{requestCounter}: {ex.GetType().Name} - {ex.Message}");
                         if (ex.InnerException != null)
                         {
                             Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Inner Exception: {ex.InnerException.Message}");

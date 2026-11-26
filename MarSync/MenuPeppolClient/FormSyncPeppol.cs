@@ -341,7 +341,7 @@ namespace MarSync.MarioMenu.Actions
                     "Er zijn fouten meegedeeld aan Vsoft voor verkoopdocumenten.\n\n" +
                     SharedGlobals.ApiModus + " omgeving.\n\n" +
                     "Gelieve de aanbevelingen van Vsoft af te wachten",
-                    "Bad Request op verkoopdocument(en)",
+                    "Foutief Verzoek op verkoopdocument(en)",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
             }
@@ -1730,9 +1730,9 @@ namespace MarSync.MarioMenu.Actions
                                         log: Console.WriteLine
                                     );
 
-                                // string messageUI = "Een mail Bad Request werd verzonden naar Vsoft voor:\n\n" + filePath;
-                                // MessageBox.Show(messageUI, "Melding Bad Request", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                ToolStripStatusLabel.Text = "Een mail Bad Request werd verzonden naar Admin voor:\n\n" + filePath;
+                                // string messageUI = "Een mail Foutief Verzoek werd verzonden naar Vsoft voor:\n\n" + filePath;
+                                // MessageBox.Show(messageUI, "Melding Foutief Verzoek", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                ToolStripStatusLabel.Text = "Een mail Foutief Verzoek werd verzonden naar Admin voor:\n\n" + filePath;
                             }
 
                             if (!string.IsNullOrEmpty(result.ResponseBody)) // Ensure ResponseBody is not null or empty
@@ -1796,9 +1796,9 @@ namespace MarSync.MarioMenu.Actions
                                         log: Console.WriteLine
                                     );
 
-                                // string messageUI = "Een mail Bad Request werd verzonden naar Vsoft voor:\n\n" + filePath;
-                                // MessageBox.Show(messageUI, "Melding Bad Request", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                ToolStripStatusLabel.Text = "Een mail Bad Request werd verzonden naar Admin voor:\n\n" + filePath;
+                                // string messageUI = "Een mail Foutief Verzoek werd verzonden naar Vsoft voor:\n\n" + filePath;
+                                // MessageBox.Show(messageUI, "Melding Foutief Verzoek", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                ToolStripStatusLabel.Text = "Een mail Foutief Verzoek werd verzonden naar Admin voor:\n\n" + filePath;
                             }
 
                             if (!string.IsNullOrEmpty(result.ResponseBody)) // Ensure ResponseBody is not null or empty
@@ -2781,7 +2781,7 @@ namespace MarSync.MarioMenu.Actions
                 ToolStripStatusLabel.Text = "Een ogenblik a.u.b. Rapport genereren...";
                 Application.DoEvents();
 
-                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Starting status report generation...");
+                Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Genereren status report starten...");
                 Console.WriteLine($"API Version V2: {SharedGlobals.AdemicoApiUsedV2}");
 
                 var jsonResponse = "";
@@ -3153,7 +3153,7 @@ namespace MarSync.MarioMenu.Actions
 
             string url = "https://ec.europa.eu/taxation_customs/vies/rest-api/ms/" + countryCode + "/vat/" + vatNumber;
 
-            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES Lookup: {url}");
+            Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES Opzoeking: {url}");
 
             try
             {
@@ -3185,7 +3185,7 @@ namespace MarSync.MarioMenu.Actions
 
                     if (data != null && data.IsValid && !string.IsNullOrWhiteSpace(data.Name))
                     {
-                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES found: {data.Name}");
+                        Console.WriteLine($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] VIES vindt: {data.Name}");
                         return ToTitleCase(data.Name);
                     }
 

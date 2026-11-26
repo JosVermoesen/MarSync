@@ -227,7 +227,7 @@ namespace MarSync.MarioMenu.Admin
                 }
                 catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                    ToolStripStatusLabel.Text = $"Verzoek mislukt: {ex.Message}";
                 }
 
             }
@@ -271,7 +271,7 @@ namespace MarSync.MarioMenu.Admin
                 }
                 catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                    ToolStripStatusLabel.Text = $"Verzoek mislukt: {ex.Message}";
                 }
             }
         }
@@ -1655,12 +1655,12 @@ namespace MarSync.MarioMenu.Admin
             }
             catch (HttpRequestException ex)
             {
-                Console.WriteLine($"Request error: {ex.Message}");
+                Console.WriteLine($"Verzoek mislukt: {ex.Message}");
                 return companyId;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unexpected VIES error: {ex.Message}");
+                Console.WriteLine($"Onverwachte VIES-fout: {ex.Message}");
                 return companyId;
             }
         }
@@ -1717,7 +1717,7 @@ namespace MarSync.MarioMenu.Admin
                 }
                 catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                    ToolStripStatusLabel.Text = $"Verzoek mislukt: {ex.Message}";
                     return;
                 }
             }
@@ -1768,7 +1768,7 @@ namespace MarSync.MarioMenu.Admin
                 }
                 catch (Exception ex)
                 {
-                    ToolStripStatusLabel.Text = $"Request failed: {ex.Message}";
+                    ToolStripStatusLabel.Text = $"Verzoek mislukt: {ex.Message}";
                     return;
                 }
             }
